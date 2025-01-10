@@ -1,3 +1,6 @@
+import os
+os.environ['CUDA_VISIBLE_DEVICES'] = '7'
+
 from absl import logging
 from absl import flags
 from absl import app
@@ -12,7 +15,6 @@ import torch
 import numpy as np
 
 import json
-import os
 
 from data import preprocess
 from data import loader

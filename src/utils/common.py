@@ -13,8 +13,8 @@ def set_random_seed(random_seed):
     torch.cuda.manual_seed(random_seed)
     torch.cuda.manual_seed_all(random_seed)  # if use multi-GPU
 
-    torch.backends.cudnn.deterministic = True
-    torch.backends.cudnn.benchmark = False
+    torch.backends.cudnn.deterministic = True # 是否使用确定性算法
+    torch.backends.cudnn.benchmark = False # 是否使用优化算法
 
     np.random.seed(random_seed)
     random.seed(random_seed)

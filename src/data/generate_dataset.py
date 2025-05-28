@@ -12,8 +12,11 @@ import os
 
 import mstar
 
+import pdb
+
 flags.DEFINE_string('image_root', default='dataset', help='')
 flags.DEFINE_string('dataset', default='soc', help='')
+flags.DEFINE_string('type', default='sar', help='')
 flags.DEFINE_boolean('is_train', default=False, help='')
 flags.DEFINE_integer('chip_size', default=100, help='')
 flags.DEFINE_integer('patch_size', default=94, help='')
@@ -26,14 +29,16 @@ project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(_
 
 def data_scaling(chip):
     r = chip.max() - chip.min()
-    return (chip - chip.min()) / r
+    scaled = (chip - chip.min()) / r
+    scaled = (scaled * 255).astype(np.uint8)
+    return scaled[:,:,0]
 
 
 def log_scale(chip):
     return np.log10(np.abs(chip) + 1)
 
 
-def generate(src_path, dst_path, is_train, chip_size, patch_size, use_phase, dataset):
+def generate(src_path, dst_path, is_train, chip_size, patch_size, use_phase, dataset, data_type):
     if not os.path.exists(src_path):
         return
     if not os.path.exists(dst_path):
@@ -52,10 +57,22 @@ def generate(src_path, dst_path, is_train, chip_size, patch_size, use_phase, dat
             name = os.path.splitext(os.path.basename(path))[0]
             with open(os.path.join(dst_path, f'{name}-{i}.json'), mode='w', encoding='utf-8') as f:
                 json.dump(label, f, ensure_ascii=False, indent=2)
-
-            # _image = log_scale(_image)
+            
+            # pdb.set_trace()
+            if data_type == 'hrrp_column':
+                _image = np.fft.ifft(_image, axis=1) # column is cross-range
+                _image = np.abs(_image)
+                _image = _image / np.max(_image, axis=0, keepdims=True) # normalize column 
+            
+            elif data_type == 'hrrp_row':
+                _image = np.fft.ifft(_image, axis=0) # row is cross-range
+                _image = np.abs(_image)
+                _image = _image / np.max(_image, axis=1, keepdims=True) # normalize row
+                
             np.save(os.path.join(dst_path, f'{name}-{i}.npy'), _image)
-            # Image.fromarray(data_scaling(_image)).convert('L').save(os.path.join(dst_path, f'{name}-{i}.bmp'))
+            if data_type == 'sar':
+                _image = log_scale(_image)
+            Image.fromarray(data_scaling(_image)).convert('L').save(os.path.join(dst_path, f'{name}-{i}.bmp'))
 
 
 def main(_):
@@ -64,7 +81,7 @@ def main(_):
 
     mode = 'train' if FLAGS.is_train else 'test'
 
-    output_root = os.path.join(dataset_root, mode)
+    output_root = os.path.join(dataset_root, mode, FLAGS.type)
     if not os.path.exists(output_root):
         os.makedirs(output_root, exist_ok=True)
 
@@ -72,12 +89,14 @@ def main(_):
         (
             os.path.join(raw_root, mode, target),
             os.path.join(output_root, target),
-            FLAGS.is_train, FLAGS.chip_size, FLAGS.patch_size, FLAGS.use_phase, FLAGS.dataset
+            FLAGS.is_train, FLAGS.chip_size, FLAGS.patch_size, FLAGS.use_phase, FLAGS.dataset, FLAGS.type
         ) for target in mstar.target_name[FLAGS.dataset]
     ]
 
     with Pool(10) as p:
         p.starmap(generate, arguments)
+    # for args in arguments:
+    #     generate(*args)
 
 
 if __name__ == '__main__':

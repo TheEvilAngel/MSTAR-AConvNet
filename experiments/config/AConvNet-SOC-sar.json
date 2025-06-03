@@ -4,7 +4,7 @@
   "num_classes": 10,
   "channels": 1,
   "batch_size": 10,
-  "epochs": 2000,
+  "epochs": 200,
   "momentum": 0.9,
   "lr": 1e-3,
   "lr_step": [50],

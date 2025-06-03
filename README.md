@@ -140,14 +140,19 @@ MSTAR-PublicMixedTargets-CD1/MSTAR_PUBLIC_MIXED_TARGETS_CD1
     - Place the two directories (`train` and  `test`) to the `dataset/soc/raw`.
 ```shell
 $ cd src/data 
-$ python3 generate_dataset.py --is_train=True --use_phase=True --chip_size=128 --patch_size=128 --dataset=soc --type=sar
-$ python3 generate_dataset.py --is_train=False --use_phase=True --chip_size=128 --patch_size=128 --dataset=soc --type=sar
+
+$ python3 generate_dataset.py --is_train=True --use_phase=True --chip_size=100 --patch_size=94 --dataset=soc --type=sar_author
+$ python3 generate_dataset.py --is_train=False --use_phase=True --chip_size=128 --patch_size=128 --dataset=soc --type=sar_author
+
+
+$ python3 generate_dataset.py --is_train=True --use_phase=False --chip_size=128 --patch_size=128 --dataset=soc --type=sar
+$ python3 generate_dataset.py --is_train=False --use_phase=False --chip_size=128 --patch_size=128 --dataset=soc --type=sar
 $ python3 generate_dataset.py --is_train=True --use_phase=True --chip_size=128 --patch_size=128 --dataset=soc --type=hrrp_column
 $ python3 generate_dataset.py --is_train=False --use_phase=True --chip_size=128 --patch_size=128 --dataset=soc --type=hrrp_column
 $ python3 generate_dataset.py --is_train=True --use_phase=True --chip_size=128 --patch_size=128 --dataset=soc --type=hrrp_row
 $ python3 generate_dataset.py --is_train=False --use_phase=True --chip_size=128 --patch_size=128 --dataset=soc --type=hrrp_row
 $ cd ..
-$ python3 train.py --config_name=config/AConvNet-SOC.json
+$ python3 train.py --config_name=config/AConvNet-SOC-sar.json
 ```
 
 ##### Results of SOC

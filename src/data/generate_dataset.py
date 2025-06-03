@@ -13,14 +13,15 @@ import os
 import mstar
 
 import pdb
+import matplotlib.pyplot as plt
 
 flags.DEFINE_string('image_root', default='dataset', help='')
 flags.DEFINE_string('dataset', default='soc', help='')
 flags.DEFINE_string('type', default='sar', help='')
 flags.DEFINE_boolean('is_train', default=False, help='')
-flags.DEFINE_integer('chip_size', default=100, help='')
-flags.DEFINE_integer('patch_size', default=94, help='')
-flags.DEFINE_boolean('use_phase', default=True, help='')
+flags.DEFINE_integer('chip_size', default=128, help='')
+flags.DEFINE_integer('patch_size', default=128, help='')
+flags.DEFINE_boolean('use_phase', default=False, help='')
 
 FLAGS = flags.FLAGS
 
@@ -36,6 +37,66 @@ def data_scaling(chip):
 
 def log_scale(chip):
     return np.log10(np.abs(chip) + 1)
+
+def enhancement(img):
+    pixel_count = np.zeros(256, dtype=int)
+    for i in range(256):
+        pixel_count[i] = np.sum(img == i)  # 统计图像中灰度i出现的次数
+    
+    max_count = np.argmax(pixel_count)  # 灰度i出现的次数最大值的下标，即此时的i
+    min_count = np.argmin(pixel_count)  # 灰度i出现的次数最小值的下标，即此时的i
+    
+    if min_count > max_count:
+        threshVal = min_count - max_count
+        img = 255.0 / threshVal * img  # 灰度 = 原灰度 * 255/threshVal
+    else:
+        img = 3 * img  # 灰度 = 原灰度 * 3
+    
+    img[img > 255] = 255  # 大于255的灰度记为255
+    img[img < 255] += 0.5
+    enhanced_img = np.round(img).astype(np.uint8)
+    
+    return enhanced_img
+
+def amplitude_to_grayscale(amplitude):
+    
+    # 展平数组以便处理
+    amplitude_flat = amplitude.flatten()
+    
+    max_pixel = np.max(amplitude_flat)  # 图像中最大的幅度值
+    min_pixel = np.min(amplitude_flat)  # 图像中最小的幅度值
+    pixel_range = max_pixel - min_pixel
+    pixel_scale = 255.0 / pixel_range   # 变换比例
+    
+    amplitude1 = amplitude_flat - min_pixel
+    amplitude2 = amplitude1 * pixel_scale
+    amplitude3 = np.round(amplitude2 + 0.5).astype(np.uint8)
+    
+    pic = amplitude3.reshape((128, 128))
+    I = pic / 255.0  # 将像素值归一化到0-1之间
+    
+    enhanced_img = enhancement(pic)
+    enI = enhanced_img / 255.0  # 将像素值归一化到0-1之间
+
+    # # 显示原始图像
+    # plt.figure(figsize=(6, 3))
+    # plt.subplot(1, 2, 1)
+    # plt.imshow(I, cmap='gray')
+    # plt.title('before enhancement')
+    # plt.axis('off')
+
+
+    # # 显示增强后的图像
+    # plt.subplot(1, 2, 2)
+    # plt.imshow(enI, cmap='gray')
+    # plt.title('after enhancement')
+    # plt.axis('off')
+    
+    # plt.savefig('enhanced_image.png', dpi=300, bbox_inches='tight')
+
+    return enI
+
+
 
 
 def generate(src_path, dst_path, is_train, chip_size, patch_size, use_phase, dataset, data_type):
@@ -68,10 +129,16 @@ def generate(src_path, dst_path, is_train, chip_size, patch_size, use_phase, dat
                 _image = np.fft.ifft(_image, axis=0) # row is cross-range
                 _image = np.abs(_image)
                 _image = _image / np.max(_image, axis=1, keepdims=True) # normalize row
-                
-            np.save(os.path.join(dst_path, f'{name}-{i}.npy'), _image)
-            if data_type == 'sar':
-                _image = log_scale(_image)
+
+            if data_type == 'sar' or data_type == 'sar_author':
+                # _image = log_scale(_image)
+                # pdb.set_trace()
+                _image_amp = amplitude_to_grayscale(_image)
+                if not use_phase:
+                    _image = np.expand_dims(_image_amp, axis=2)
+
+
+            np.save(os.path.join(dst_path, f'{name}-{i}.npy'), _image)                
             Image.fromarray(data_scaling(_image)).convert('L').save(os.path.join(dst_path, f'{name}-{i}.bmp'))
 
 

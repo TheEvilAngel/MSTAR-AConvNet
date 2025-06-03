@@ -1,5 +1,5 @@
 import os
-os.environ['CUDA_VISIBLE_DEVICES'] = '7'
+os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 
 from absl import logging
 from absl import flags
@@ -16,29 +16,33 @@ import numpy as np
 
 import json
 
+from datetime import datetime
+
 from data import preprocess
 from data import loader
 from utils import common
 import model
 
+import pdb
+
 flags.DEFINE_string('experiments_path', os.path.join(common.project_root, 'experiments'), help='')
-flags.DEFINE_string('config_name', 'config/AConvNet-SOC.json', help='')
+flags.DEFINE_string('config_name', 'config/AConvNet-SOC-sar.json', help='')
 FLAGS = flags.FLAGS
 
 
 common.set_random_seed(12321)
 
 
-def load_dataset(path, is_train, name, batch_size):
+def load_dataset(path, is_train, name, data_type, batch_size):
     transform = [preprocess.CenterCrop(88), torchvision.transforms.ToTensor()]
     if is_train:
         transform = [preprocess.RandomCrop(88), torchvision.transforms.ToTensor()]
     _dataset = loader.Dataset(
-        path, name=name, is_train=is_train,
+        path, name=name, data_type=data_type, is_train=is_train,
         transform=torchvision.transforms.Compose(transform)
     )
     data_loader = torch.utils.data.DataLoader(
-        _dataset, batch_size=batch_size, shuffle=is_train, num_workers=1
+        _dataset, batch_size=batch_size, shuffle=is_train, num_workers=4
     )
     return data_loader
 
@@ -68,9 +72,11 @@ def validation(m, ds):
 
 def run(epochs, dataset, classes, channels, batch_size,
         lr, lr_step, lr_decay, weight_decay, dropout_rate,
-        model_name, experiments_path=None):
-    train_set = load_dataset('dataset', True, dataset, batch_size)
-    valid_set = load_dataset('dataset', False, dataset, batch_size)
+        model_name, data_type, experiments_path=None):
+    train_set = load_dataset('dataset', True, dataset, data_type, batch_size)
+    valid_set = load_dataset('dataset', False, dataset, data_type, batch_size)
+    print(f'Train set size: {len(train_set.dataset)}')
+    print(f'Validation set size: {len(valid_set.dataset)}')
 
     m = model.Model(
         classes=classes, dropout_rate=dropout_rate, channels=channels,
@@ -78,7 +84,8 @@ def run(epochs, dataset, classes, channels, batch_size,
         weight_decay=weight_decay
     )
 
-    model_path = os.path.join(experiments_path, f'model/{model_name}')
+    datetime_str = datetime.now().strftime('%Y%m%d_%H%M%S')
+    model_path = os.path.join(experiments_path, f'model/{model_name}/{datetime_str}')
     if not os.path.exists(model_path):
         os.makedirs(model_path, exist_ok=True)
 
@@ -115,7 +122,7 @@ def run(epochs, dataset, classes, channels, batch_size,
         if experiments_path:
             m.save(os.path.join(model_path, f'model-{epoch + 1:03d}.pth'))
 
-    with open(os.path.join(history_path, f'history-{model_name}.json'), mode='w', encoding='utf-8') as f:
+    with open(os.path.join(history_path, f'history-{model_name}-{datetime_str}.json'), mode='w', encoding='utf-8') as f:
         json.dump(history, f, ensure_ascii=True, indent=2)
 
 
@@ -141,9 +148,11 @@ def main(_):
 
     model_name = config['model_name']
 
+    data_type = config['data_type']
+
     run(epochs, dataset, classes, channels, batch_size,
         lr, lr_step, lr_decay, weight_decay, dropout_rate,
-        model_name, experiments_path)
+        model_name, data_type, experiments_path)
 
     logging.info('Finish')
 

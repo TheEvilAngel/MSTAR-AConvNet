@@ -14,9 +14,10 @@ project_root = os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(_
 
 class Dataset(torch.utils.data.Dataset):
 
-    def __init__(self, path, name='soc', is_train=False, transform=None):
+    def __init__(self, path, name='soc', data_type='sar', is_train=False, transform=None):
         self.is_train = is_train
         self.name = name
+        self.data_type = data_type
 
         self.images = []
         self.labels = []
@@ -44,8 +45,8 @@ class Dataset(torch.utils.data.Dataset):
     def _load_data(self, path):
         mode = 'train' if self.is_train else 'test'
 
-        image_list = glob.glob(os.path.join(project_root, path, f'{self.name}/{mode}/*/*.npy'))
-        label_list = glob.glob(os.path.join(project_root, path, f'{self.name}/{mode}/*/*.json'))
+        image_list = glob.glob(os.path.join(project_root, path, f'{self.name}/{mode}/{self.data_type}/*/*.npy'))
+        label_list = glob.glob(os.path.join(project_root, path, f'{self.name}/{mode}/{self.data_type}/*/*.json'))
         image_list = sorted(image_list, key=os.path.basename)
         label_list = sorted(label_list, key=os.path.basename)
 

@@ -130,15 +130,15 @@ def generate(src_path, dst_path, is_train, chip_size, patch_size, use_phase, dat
                 _image = np.abs(_image)
                 _image = _image / np.max(_image, axis=1, keepdims=True) # normalize row
 
-            if data_type == 'sar' or data_type == 'sar_author':
+            if data_type == 'sar':
                 # _image = log_scale(_image)
                 # pdb.set_trace()
                 _image_amp = amplitude_to_grayscale(_image)
                 if not use_phase:
                     _image = np.expand_dims(_image_amp, axis=2)
 
+            np.save(os.path.join(dst_path, f'{name}-{i}.npy'), _image)
 
-            np.save(os.path.join(dst_path, f'{name}-{i}.npy'), _image)                
             Image.fromarray(data_scaling(_image)).convert('L').save(os.path.join(dst_path, f'{name}-{i}.bmp'))
 
 

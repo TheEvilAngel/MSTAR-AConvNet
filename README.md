@@ -233,10 +233,14 @@ MSTAR-PublicMixedTargets-CD2/MSTAR_PUBLIC_MIXED_TARGETS_CD2
     - Place the two directories (`train` and  `test`) to the `dataset/eoc-1-t72-a64/raw`.
 ```shell
 $ cd src/data 
-$ python3 generate_dataset.py --is_train=True --use_phase=True --chip_size=100 --patch_size=94 --use_phase=True --dataset=eoc-1-t72-a64 
-$ python3 generate_dataset.py --is_train=False --use_phase=True --chip_size=128 --patch_size=128  --use_phase=True --dataset=eoc-1-t72-a64
+$ python3 generate_dataset.py --is_train=True --use_phase=False --chip_size=100 --patch_size=94 --dataset=eoc-1-t72-a64 --type=sar_author
+$ python3 generate_dataset.py --is_train=False --use_phase=False --chip_size=128 --patch_size=128 --dataset=eoc-1-t72-a64 --type=sar_author
+
+$ python3 generate_dataset.py --is_train=True --use_phase=False --chip_size=128 --patch_size=128 --dataset=eoc-1-t72-a64 --type=sar
+$ python3 generate_dataset.py --is_train=False --use_phase=False --chip_size=128 --patch_size=128 --dataset=eoc-1-t72-a64 --type=sar
+
 $ cd ..
-$ python3 train.py --config_name=config/AConvNet-EOC-1-T72-A64.json
+$ python3 train.py --config_name=config/AConvNet-EOC-1-T72-A64-sar.json
 ```
 
 ##### Results of EOC-1
@@ -315,8 +319,12 @@ MSTAR-PublicT72Variants-CD1/MSTAR_PUBLIC_T_72_VARIANTS_CD1
 $ cd src/data 
 $ python3 generate_dataset.py --is_train=True --use_phase=True --chip_size=100 --patch_size=94 --use_phase=True --dataset=eoc-2-cv 
 $ python3 generate_dataset.py --is_train=False --use_phase=True --chip_size=128 --patch_size=128  --use_phase=True --dataset=eoc-2-cv
+
+$ python3 generate_dataset.py --is_train=True --use_phase=False --chip_size=128 --patch_size=128 --dataset=eoc-2-cv --type=sar
+$ python3 generate_dataset.py --is_train=False --use_phase=False --chip_size=128 --patch_size=128 --dataset=eoc-2-cv --type=sar
+
 $ cd ..
-$ python3 train.py --config_name=config/AConvNet-EOC-2-CV.json
+$ python3 train.py --config_name=config/AConvNet-EOC-2-CV-sar.json
 ```
 
 ##### Results of EOC-2 Configuration Variants
@@ -403,8 +411,12 @@ MSTAR-PublicT72Variants-CD1/MSTAR_PUBLIC_T_72_VARIANTS_CD1
 $ cd src/data 
 $ python3 generate_dataset.py --is_train=True --use_phase=True --chip_size=100 --patch_size=94 --use_phase=True --dataset=eoc-2-vv 
 $ python3 generate_dataset.py --is_train=False --use_phase=True --chip_size=128 --patch_size=128  --use_phase=True --dataset=eoc-2-vv
+
+$ python3 generate_dataset.py --is_train=True --use_phase=False --chip_size=128 --patch_size=128 --dataset=eoc-2-vv --type=sar
+$ python3 generate_dataset.py --is_train=False --use_phase=False --chip_size=128 --patch_size=128 --dataset=eoc-2-vv --type=sar
+
 $ cd ..
-$ python3 train.py --config_name=config/AConvNet-EOC-2-CV.json
+$ python3 train.py --config_name=config/AConvNet-EOC-2-VV-sar.json
 ```
 
 ##### Results of EOC-2 Version Variants

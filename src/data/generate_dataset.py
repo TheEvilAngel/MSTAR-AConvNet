@@ -73,10 +73,10 @@ def amplitude_to_grayscale(amplitude):
     amplitude3 = np.round(amplitude2 + 0.5).astype(np.uint8)
     
     pic = amplitude3.reshape((128, 128))
-    I = pic / 255.0  # 将像素值归一化到0-1之间
+    I = (pic / 255.0).astype(np.float32)  # 将像素值归一化到0-1之间
     
     enhanced_img = enhancement(pic)
-    enI = enhanced_img / 255.0  # 将像素值归一化到0-1之间
+    enI = (enhanced_img / 255.0).astype(np.float32)  # 将像素值归一化到0-1之间
 
     # # 显示原始图像
     # plt.figure(figsize=(6, 3))

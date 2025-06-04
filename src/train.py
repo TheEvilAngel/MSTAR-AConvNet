@@ -1,5 +1,5 @@
 import os
-os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+os.environ['CUDA_VISIBLE_DEVICES'] = '7'
 
 from absl import logging
 from absl import flags
@@ -98,6 +98,22 @@ def run(epochs, dataset, classes, channels, batch_size,
         'accuracy': []
     }
 
+    # 在保存history之前，添加配置信息
+    history['config'] = {
+        'dataset': dataset,
+        'num_classes': classes,
+        'channels': channels,
+        'epochs': epochs,
+        'batch_size': batch_size,
+        'lr': lr,
+        'lr_step': lr_step,
+        'lr_decay': lr_decay,
+        'weight_decay': weight_decay,
+        'dropout_rate': dropout_rate,
+        'model_name': model_name,
+        'data_type': data_type
+    }
+
     for epoch in range(epochs):
         _loss = []
 
@@ -124,6 +140,7 @@ def run(epochs, dataset, classes, channels, batch_size,
 
     with open(os.path.join(history_path, f'history-{model_name}-{datetime_str}.json'), mode='w', encoding='utf-8') as f:
         json.dump(history, f, ensure_ascii=True, indent=2)
+        
 
 
 def main(_):

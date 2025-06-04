@@ -141,9 +141,23 @@ MSTAR-PublicMixedTargets-CD1/MSTAR_PUBLIC_MIXED_TARGETS_CD1
 ```shell
 $ cd src/data 
 
-$ python3 generate_dataset.py --is_train=True --use_phase=True --chip_size=100 --patch_size=94 --dataset=soc --type=sar_author
-$ python3 generate_dataset.py --is_train=False --use_phase=True --chip_size=128 --patch_size=128 --dataset=soc --type=sar_author
+$ python3 generate_dataset.py --is_train=True --use_phase=False --chip_size=100 --patch_size=100 --dataset=soc --type=sar1
+$ python3 generate_dataset.py --is_train=False --use_phase=False --chip_size=128 --patch_size=128 --dataset=soc --type=sar1
 
+$ python3 generate_dataset.py --is_train=True --use_phase=True --chip_size=100 --patch_size=100 --dataset=soc --type=sar1-usephase
+$ python3 generate_dataset.py --is_train=False --use_phase=True --chip_size=128 --patch_size=128 --dataset=soc --type=sar1-usephase
+
+$ python3 generate_dataset.py --is_train=True --use_phase=False --chip_size=100 --patch_size=94 --dataset=soc --type=sar49
+$ python3 generate_dataset.py --is_train=False --use_phase=False --chip_size=128 --patch_size=128 --dataset=soc --type=sar49
+
+$ python3 generate_dataset.py --is_train=True --use_phase=True --chip_size=100 --patch_size=94 --dataset=soc --type=sar49-usephase
+$ python3 generate_dataset.py --is_train=False --use_phase=True --chip_size=128 --patch_size=128 --dataset=soc --type=sar49-usephase
+
+$ python3 generate_dataset.py --is_train=True --use_phase=False --chip_size=128 --patch_size=128 --dataset=soc --type=sar1-128
+$ python3 generate_dataset.py --is_train=False --use_phase=False --chip_size=128 --patch_size=128 --dataset=soc --type=sar1-128
+
+$ python3 generate_dataset.py --is_train=True --use_phase=True --chip_size=128 --patch_size=128 --dataset=soc --type=sar1-128-usephase
+$ python3 generate_dataset.py --is_train=False --use_phase=True --chip_size=128 --patch_size=128 --dataset=soc --type=sar1-128-usephase
 
 $ python3 generate_dataset.py --is_train=True --use_phase=False --chip_size=128 --patch_size=128 --dataset=soc --type=sar
 $ python3 generate_dataset.py --is_train=False --use_phase=False --chip_size=128 --patch_size=128 --dataset=soc --type=sar
@@ -235,6 +249,22 @@ MSTAR-PublicMixedTargets-CD2/MSTAR_PUBLIC_MIXED_TARGETS_CD2
 $ cd src/data 
 $ python3 generate_dataset.py --is_train=True --use_phase=False --chip_size=100 --patch_size=94 --dataset=eoc-1-t72-a64 --type=sar_author
 $ python3 generate_dataset.py --is_train=False --use_phase=False --chip_size=128 --patch_size=128 --dataset=eoc-1-t72-a64 --type=sar_author
+
+$ python3 generate_dataset.py --is_train=True --use_phase=False --chip_size=100 --patch_size=96 --dataset=eoc-1-t72-a64 --type=sar25
+$ python3 generate_dataset.py --is_train=False --use_phase=False --chip_size=128 --patch_size=128 --dataset=eoc-1-t72-a64 --type=sar25
+
+$ python3 generate_dataset.py --is_train=True --use_phase=False --chip_size=100 --patch_size=100 --dataset=eoc-1-t72-a64 --type=sar9
+$ python3 generate_dataset.py --is_train=False --use_phase=False --chip_size=128 --patch_size=128 --dataset=eoc-1-t72-a64 --type=sar9
+
+
+$ python3 generate_dataset.py --is_train=True --use_phase=False --chip_size=100 --patch_size=99 --dataset=eoc-1-t72-a64 --type=sar4
+$ python3 generate_dataset.py --is_train=False --use_phase=False --chip_size=128 --patch_size=128 --dataset=eoc-1-t72-a64 --type=sar4
+
+$ python3 generate_dataset.py --is_train=True --use_phase=False --chip_size=100 --patch_size=100 --dataset=eoc-1-t72-a64 --type=sar1
+$ python3 generate_dataset.py --is_train=False --use_phase=False --chip_size=128 --patch_size=128 --dataset=eoc-1-t72-a64 --type=sar1
+
+$ python3 generate_dataset.py --is_train=True --use_phase=False --chip_size=128 --patch_size=128 --dataset=eoc-1-t72-a64 --type=sar1-128
+$ python3 generate_dataset.py --is_train=False --use_phase=False --chip_size=128 --patch_size=128 --dataset=eoc-1-t72-a64 --type=sar1-128
 
 $ python3 generate_dataset.py --is_train=True --use_phase=False --chip_size=128 --patch_size=128 --dataset=eoc-1-t72-a64 --type=sar
 $ python3 generate_dataset.py --is_train=False --use_phase=False --chip_size=128 --patch_size=128 --dataset=eoc-1-t72-a64 --type=sar

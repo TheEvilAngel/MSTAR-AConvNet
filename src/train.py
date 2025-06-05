@@ -114,6 +114,8 @@ def run(epochs, dataset, classes, channels, batch_size,
         'data_type': data_type
     }
 
+    best_accuray = 0.0
+    
     for epoch in range(epochs):
         _loss = []
 
@@ -134,10 +136,19 @@ def run(epochs, dataset, classes, channels, batch_size,
 
         history['loss'].append(np.mean(_loss))
         history['accuracy'].append(accuracy)
+        if accuracy > best_accuray:
+            best_accuray = accuracy
+            m.save(os.path.join(model_path, f'model-best.pth'))
 
         if experiments_path:
             m.save(os.path.join(model_path, f'model-{epoch + 1:03d}.pth'))
 
+    history['best_accuary'] = best_accuray
+    
+    sorted_accuracies = sorted(history['accuracy'], reverse=True)
+    top10_avg_accuracy = sum(sorted_accuracies[:10]) / min(10, len(sorted_accuracies))
+    history['top10_avg_acc'] = top10_avg_accuracy
+    
     with open(os.path.join(history_path, f'history-{model_name}-{datetime_str}.json'), mode='w', encoding='utf-8') as f:
         json.dump(history, f, ensure_ascii=True, indent=2)
         

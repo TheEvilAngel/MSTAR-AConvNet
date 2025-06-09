@@ -11,6 +11,7 @@ import glob
 import os
 
 import mstar
+from hrrp_generate import HRRPGenerator
 
 import pdb
 import matplotlib.pyplot as plt
@@ -22,6 +23,7 @@ flags.DEFINE_boolean('is_train', default=False, help='')
 flags.DEFINE_integer('chip_size', default=128, help='')
 flags.DEFINE_integer('patch_size', default=128, help='')
 flags.DEFINE_boolean('use_phase', default=False, help='')
+flags.DEFINE_integer('column_group_size', default=1, help='Number of columns to average in HRRP')
 
 FLAGS = flags.FLAGS
 
@@ -96,10 +98,17 @@ def amplitude_to_grayscale(amplitude):
 
     return enI
 
+def plot_1d_data(data, save_path):
+    plt.figure(figsize=(8, 4))
+    plt.plot(data)
+    plt.grid(True)
+    plt.xlabel('Range Cell')
+    plt.ylabel('Amplitude')
+    plt.tight_layout()
+    plt.savefig(save_path)
+    plt.close()
 
-
-
-def generate(src_path, dst_path, is_train, chip_size, patch_size, use_phase, dataset, data_type):
+def generate(src_path, dst_path, is_train, chip_size, patch_size, use_phase, dataset, data_type, column_group_size):
     if not os.path.exists(src_path):
         return
     if not os.path.exists(dst_path):
@@ -109,37 +118,30 @@ def generate(src_path, dst_path, is_train, chip_size, patch_size, use_phase, dat
     _mstar = mstar.MSTAR(
         name=dataset, is_train=is_train, chip_size=chip_size, patch_size=patch_size, use_phase=use_phase, stride=1
     )
-
+    _generator = HRRPGenerator(chip_size=128, patch_size=128, use_phase=False)
+    
     image_list = glob.glob(os.path.join(src_path, '*'))
 
     for path in image_list:
         label, _images = _mstar.read(path)
         for i, _image in enumerate(_images):
             name = os.path.splitext(os.path.basename(path))[0]
-            with open(os.path.join(dst_path, f'{name}-{i}.json'), mode='w', encoding='utf-8') as f:
-                json.dump(label, f, ensure_ascii=False, indent=2)
-            
-            # pdb.set_trace()
             if data_type == 'hrrp_column':
-                _image = np.fft.ifft(_image, axis=1) # column is cross-range
-                _image = np.abs(_image)
-                _image = _image / np.max(_image, axis=0, keepdims=True) # normalize column 
-            
-            elif data_type == 'hrrp_row':
-                _image = np.fft.ifft(_image, axis=0) # row is cross-range
-                _image = np.abs(_image)
-                _image = _image / np.max(_image, axis=1, keepdims=True) # normalize row
-
-            if data_type == 'sar':
+                _generator.process_hrrp_column(_image, label, name, dst_path, column_group_size, i)
+            elif data_type == 'hrrp_column_complex':
+                _generator.process_hrrp_column_complex(_image, label, name, dst_path, column_group_size, i)
+            else:
                 # _image = log_scale(_image)
                 # pdb.set_trace()
-                _image_amp = amplitude_to_grayscale(_image)
-                if not use_phase:
-                    _image = np.expand_dims(_image_amp, axis=2)
+                if data_type == 'sar':
+                    _image_amp = amplitude_to_grayscale(_image)
+                    if not use_phase:
+                        _image = np.expand_dims(_image_amp, axis=2)
+                with open(os.path.join(dst_path, f'{name}-{i}.json'), mode='w', encoding='utf-8') as f:
+                    json.dump(label, f, ensure_ascii=False, indent=2)
+                np.save(os.path.join(dst_path, f'{name}-{i}.npy'), _image)
 
-            np.save(os.path.join(dst_path, f'{name}-{i}.npy'), _image)
-
-            Image.fromarray(data_scaling(_image)).convert('L').save(os.path.join(dst_path, f'{name}-{i}.bmp'))
+                Image.fromarray(data_scaling(_image)).convert('L').save(os.path.join(dst_path, f'{name}-{i}.bmp'))
 
 
 def main(_):
@@ -147,8 +149,10 @@ def main(_):
     raw_root = os.path.join(dataset_root, 'raw')
 
     mode = 'train' if FLAGS.is_train else 'test'
-
     output_root = os.path.join(dataset_root, mode, FLAGS.type)
+    if FLAGS.type == 'hrrp_column' or FLAGS.type == 'hrrp_row' or FLAGS.type == 'hrrp_column_complex' or FLAGS.type == 'hrrp_row_complex':
+        output_root = os.path.join(output_root, str(FLAGS.column_group_size))
+        
     if not os.path.exists(output_root):
         os.makedirs(output_root, exist_ok=True)
 
@@ -156,7 +160,8 @@ def main(_):
         (
             os.path.join(raw_root, mode, target),
             os.path.join(output_root, target),
-            FLAGS.is_train, FLAGS.chip_size, FLAGS.patch_size, FLAGS.use_phase, FLAGS.dataset, FLAGS.type
+            FLAGS.is_train, FLAGS.chip_size, FLAGS.patch_size, FLAGS.use_phase, FLAGS.dataset, FLAGS.type,
+            FLAGS.column_group_size
         ) for target in mstar.target_name[FLAGS.dataset]
     ]
 

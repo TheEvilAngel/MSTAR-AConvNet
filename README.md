@@ -159,10 +159,17 @@ $ python3 generate_dataset.py --is_train=False --use_phase=False --chip_size=128
 $ python3 generate_dataset.py --is_train=True --use_phase=True --chip_size=128 --patch_size=128 --dataset=soc --type=sar1-128-usephase
 $ python3 generate_dataset.py --is_train=False --use_phase=True --chip_size=128 --patch_size=128 --dataset=soc --type=sar1-128-usephase
 
-$ python3 generate_dataset.py --is_train=True --use_phase=False --chip_size=128 --patch_size=128 --dataset=soc --type=sar
-$ python3 generate_dataset.py --is_train=False --use_phase=False --chip_size=128 --patch_size=128 --dataset=soc --type=sar
-$ python3 generate_dataset.py --is_train=True --use_phase=True --chip_size=128 --patch_size=128 --dataset=soc --type=hrrp_column
-$ python3 generate_dataset.py --is_train=False --use_phase=True --chip_size=128 --patch_size=128 --dataset=soc --type=hrrp_column
+$ python3 generate_dataset.py --is_train=True --use_phase=False --chip_size=100 --patch_size=100 --dataset=soc --type=hrrp_column --column_group_size=10
+$ python3 generate_dataset.py --is_train=True --use_phase=False --chip_size=100 --patch_size=100 --dataset=soc --type=hrrp_column --column_group_size=100
+$ python3 generate_dataset.py --is_train=True --use_phase=True --chip_size=100 --patch_size=100 --dataset=soc --type=hrrp_column_complex --column_group_size=10
+$ python3 generate_dataset.py --is_train=True --use_phase=True --chip_size=100 --patch_size=100 --dataset=soc --type=hrrp_column_complex --column_group_size=100
+
+$ python3 generate_dataset.py --is_train=False --use_phase=False --chip_size=100 --patch_size=100 --dataset=soc --type=hrrp_column --column_group_size=10
+$ python3 generate_dataset.py --is_train=False --use_phase=False --chip_size=100 --patch_size=100 --dataset=soc --type=hrrp_column --column_group_size=100
+$ python3 generate_dataset.py --is_train=False --use_phase=True --chip_size=100 --patch_size=100 --dataset=soc --type=hrrp_column_complex --column_group_size=10
+$ python3 generate_dataset.py --is_train=False --use_phase=True --chip_size=100 --patch_size=100 --dataset=soc --type=hrrp_column_complex --column_group_size=100
+
+$ python3 generate_dataset.py --is_train=False --use_phase=False --chip_size=100 --patch_size=100 --dataset=soc --type=hrrp_column --column_group_size=10
 $ python3 generate_dataset.py --is_train=True --use_phase=True --chip_size=128 --patch_size=128 --dataset=soc --type=hrrp_row
 $ python3 generate_dataset.py --is_train=False --use_phase=True --chip_size=128 --patch_size=128 --dataset=soc --type=hrrp_row
 $ cd ..

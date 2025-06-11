@@ -1,5 +1,5 @@
 {
-  "model_name": "AConvNet-SOC-sar49",
+  "model_name": "AConvNet-SOC-sar1",
   "dataset": "soc",
   "num_classes": 10,
   "channels": 1,
@@ -11,5 +11,10 @@
   "lr_decay": 0.1,
   "weight_decay": 4e-3,
   "dropout_rate": 0.5,
-  "data_type": "sar49"
+  "data_type": "sar1",
+  "data_hrrp_type": "hrrp_column_complex",
+  "train_type": "cfm",
+  "cfm_input_dim": 100,
+  "use_cfm": true,
+  "column_group_size": 100
 }

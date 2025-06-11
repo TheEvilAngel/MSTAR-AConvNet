@@ -33,14 +33,15 @@ FLAGS = flags.FLAGS
 common.set_random_seed(12321)
 
 
-def load_dataset(path, is_train, name, data_type, batch_size):
+def load_dataset(path, is_train, use_cfm, name, data_type, data_hrrp_type, batch_size, column_group_size):
     transform = [preprocess.CenterCrop(88), torchvision.transforms.ToTensor()]
     if is_train:
         transform = [preprocess.RandomCrop(88), torchvision.transforms.ToTensor()]
     _dataset = loader.Dataset(
-        path, name=name, data_type=data_type, is_train=is_train,
+        path, name=name, data_type=data_type, data_hrrp_type=data_hrrp_type, is_train=is_train, use_cfm=use_cfm, column_group_size=column_group_size,
         transform=torchvision.transforms.Compose(transform)
     )
+    # TODO 看是不是对应的读取
     data_loader = torch.utils.data.DataLoader(
         _dataset, batch_size=batch_size, shuffle=is_train, num_workers=4
     )
@@ -55,10 +56,14 @@ def validation(m, ds):
     # Test loop
     m.net.eval()
     _softmax = torch.nn.Softmax(dim=1)
-    for i, data in enumerate(tqdm(ds)):
-        images, labels, _ = data
-
-        predictions = m.inference(images)
+    for i, data in enumerate(tqdm(ds)):        
+        if m.net.use_cfm:
+            images, labels, _, hrrp_data = data
+            predictions = m.inference(images, hrrp_data)
+        else:
+            images, labels, _ = data
+            predictions = m.inference(images)
+            
         predictions = _softmax(predictions)
 
         _, predictions = torch.max(predictions.data, 1)
@@ -72,20 +77,20 @@ def validation(m, ds):
 
 def run(epochs, dataset, classes, channels, batch_size,
         lr, lr_step, lr_decay, weight_decay, dropout_rate,
-        model_name, data_type, experiments_path=None):
-    train_set = load_dataset('dataset', True, dataset, data_type, batch_size)
-    valid_set = load_dataset('dataset', False, dataset, data_type, batch_size)
+        model_name, data_type, data_hrrp_type, train_type, column_group_size, cfm_input_dim, use_cfm, experiments_path=None):
+    train_set = load_dataset('dataset', True, use_cfm, dataset, data_type, data_hrrp_type, batch_size, column_group_size)
+    valid_set = load_dataset('dataset', False, use_cfm, dataset, data_type, data_hrrp_type, batch_size, column_group_size)
     print(f'Train set size: {len(train_set.dataset)}')
     print(f'Validation set size: {len(valid_set.dataset)}')
 
     m = model.Model(
         classes=classes, dropout_rate=dropout_rate, channels=channels,
         lr=lr, lr_step=lr_step, lr_decay=lr_decay,
-        weight_decay=weight_decay
+        weight_decay=weight_decay, cfm_input_dim=cfm_input_dim, use_cfm=use_cfm
     )
 
     datetime_str = datetime.now().strftime('%Y%m%d_%H%M%S')
-    model_path = os.path.join(experiments_path, f'model/{model_name}/{datetime_str}')
+    model_path = os.path.join(experiments_path, f'model/{model_name}/{train_type}/{datetime_str}')
     if not os.path.exists(model_path):
         os.makedirs(model_path, exist_ok=True)
 
@@ -111,18 +116,27 @@ def run(epochs, dataset, classes, channels, batch_size,
         'weight_decay': weight_decay,
         'dropout_rate': dropout_rate,
         'model_name': model_name,
-        'data_type': data_type
+        'data_type': data_type,
+        'train_type': train_type,
+        "data_hrrp_type": "hrrp_column_complex",
+        'column_group_size': column_group_size,
+        'cfm_input_dim': cfm_input_dim,
+        'use_cfm': use_cfm
     }
 
     best_accuray = 0.0
-    
+    # pdb.set_trace()
     for epoch in range(epochs):
         _loss = []
 
         m.net.train()
         for i, data in enumerate(tqdm(train_set)):
-            images, labels, _ = data
-            _loss.append(m.optimize(images, labels))
+            if use_cfm:
+                images, labels, _, hrrp_data = data
+                _loss.append(m.optimize(images, labels, hrrp_data))
+            else:
+                images, labels, _ = data
+                _loss.append(m.optimize(images, labels))
 
         if m.lr_scheduler:
             lr = m.lr_scheduler.get_last_lr()[0]
@@ -149,7 +163,7 @@ def run(epochs, dataset, classes, channels, batch_size,
     top10_avg_accuracy = sum(sorted_accuracies[:10]) / min(10, len(sorted_accuracies))
     history['top10_avg_acc'] = top10_avg_accuracy
     
-    with open(os.path.join(history_path, f'history-{model_name}-{datetime_str}.json'), mode='w', encoding='utf-8') as f:
+    with open(os.path.join(history_path, f'history-{model_name}-{train_type}-{datetime_str}.json'), mode='w', encoding='utf-8') as f:
         json.dump(history, f, ensure_ascii=True, indent=2)
         
 
@@ -177,10 +191,16 @@ def main(_):
     model_name = config['model_name']
 
     data_type = config['data_type']
-
+    data_hrrp_type = config['data_hrrp_type']
+    train_type = config['train_type']
+    
+    cfm_input_dim = config['cfm_input_dim']
+    use_cfm = config['use_cfm']
+    column_group_size = config['column_group_size']
+    
     run(epochs, dataset, classes, channels, batch_size,
         lr, lr_step, lr_decay, weight_decay, dropout_rate,
-        model_name, data_type, experiments_path)
+        model_name, data_type, data_hrrp_type, train_type, column_group_size, cfm_input_dim, use_cfm, experiments_path)
 
     logging.info('Finish')
 

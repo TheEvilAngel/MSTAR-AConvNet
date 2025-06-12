@@ -27,6 +27,5 @@ class CFM(nn.Module):
         
         batch_size = x.shape[0]
         # 重塑输出为卷积核的形状 [batch_size, 5, 5, channels, 16]
-        x = x.view(batch_size, 5, 5, -1, 16)
-
+        x = x.view(batch_size, -1)
         return x 

@@ -35,11 +35,13 @@ class Network(nn.Module):
 
         print("  Creating first conv layer...")
         t0 = time.time()
-        # 第一个卷积层单独定义，因为需要动态更新参数
-        self.first_conv = _blocks.Conv2DBlock(
+        # 创建两个并行的第一层：一个用于CFM，一个用于普通Conv2D
+        self.first_conv_normal = _blocks.Conv2DBlock(
             shape=[5, 5, self.channels, 16], stride=1, padding='valid', activation='relu', max_pool=True,
             w_init=_w_init, b_init=_b_init
         )
+        self.first_maxpool = nn.MaxPool2d(kernel_size=2, stride=2)
+        self.first_relu = nn.ReLU()
         print(f"  First conv creation took {time.time() - t0:.2f}s")
 
         print("  Creating remaining layers...")
@@ -68,26 +70,49 @@ class Network(nn.Module):
         print(f"  Remaining layers creation took {time.time() - t0:.2f}s")
         print(f"  Total Network initialization took {time.time() - t_start:.2f}s")
 
-    def update_conv_weights(self, cfm_input):
-        # 使用CFM生成新的卷积核参数
-        new_weights = self.cfm(cfm_input)  # [B, 5, 5, 1, 16]
+    def apply_cfm_conv(self, x, cfm_input):
+        # 获取输入维度
+        batch_size, channels, height, width = x.shape  # [B, C, 88, 88]
         
-        # 检查batch size
-        if len(new_weights.shape) == 5:  # 如果有batch维度
-            # 对每个batch生成的权重取平均，或者只使用第一个
-            new_weights = new_weights.mean(dim=0)  # [5, 5, 1, 16]
-            
-        # 调整维度顺序以匹配PyTorch的卷积权重格式 [out_channels, in_channels, height, width]
-        new_weights = new_weights.permute(3, 2, 0, 1)  # [16, 1, 5, 5]
+        # 1. 重塑输入x为[1, B*C, 88, 88]
+        x_reshaped = x.view(1, batch_size * channels, height, width)
         
-        # 更新第一个卷积层的权重
-        conv_layer = self.first_conv._layer.conv
-        conv_layer.weight.data = new_weights
+        # 2. 处理CFM输出的权重
+        weights = self.cfm(cfm_input)  # [B, 5*5*C*16]
+        # 重塑为[B, 16, C, 5, 5]
+        weights = weights.view(batch_size, 16, channels, 5, 5)
+        # 转换为[16*B, C, 5, 5]
+        weights = weights.permute(1, 0, 2, 3, 4).contiguous()
+        weights = weights.view(16 * batch_size, channels, 5, 5)
+        
+        # 3. 执行分组卷积
+        # F.conv2d参数：input, weight, bias=None, stride=1, padding=0, dilation=1, groups=1
+        x_conv = torch.nn.functional.conv2d(
+            x_reshaped,           # [1, B*C, 88, 88]
+            weights,              # [16*B, C, 5, 5]
+            bias=None,
+            stride=1,
+            padding=0,
+            groups=batch_size     # 分组数等于batch_size
+        )
+        
+        # 4. 重塑输出为[B, 16, H, W]
+        out_height = x_conv.shape[2]  # 计算卷积后的高度
+        out_width = x_conv.shape[3]   # 计算卷积后的宽度
+        x_output = x_conv.view(batch_size, 16, out_height, out_width)
+        
+        # 应用激活函数和池化
+        x_output = self.first_relu(x_output)
+        x_output = self.first_maxpool(x_output)
+        
+        return x_output
 
     def forward(self, x, cfm_input=None):
+        # 根据use_cfm选择使用哪个路径
         if self.use_cfm and cfm_input is not None:
-            self.update_conv_weights(cfm_input)
-        
-        x = self.first_conv(x)
+            x = self.apply_cfm_conv(x, cfm_input)
+        else:
+            x = self.first_conv_normal(x)
+            
         x = self.remaining_layers(x)
         return x

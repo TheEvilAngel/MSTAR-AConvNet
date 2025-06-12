@@ -300,7 +300,7 @@ dataset/confuser-rejection/raw/test/
 dataset/confuser-rejection/train/
 dataset/confuser-rejection/test/
 
-experiments/history
+
 
 *.pth
 *.zip

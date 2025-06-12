@@ -125,6 +125,7 @@ def run(epochs, dataset, classes, channels, batch_size,
     }
 
     best_accuray = 0.0
+    best_epoch = 0
     # pdb.set_trace()
     for epoch in range(epochs):
         _loss = []
@@ -152,12 +153,14 @@ def run(epochs, dataset, classes, channels, batch_size,
         history['accuracy'].append(accuracy)
         if accuracy > best_accuray:
             best_accuray = accuracy
+            best_epoch = epoch + 1
             m.save(os.path.join(model_path, f'model-best.pth'))
 
         if experiments_path:
             m.save(os.path.join(model_path, f'model-{epoch + 1:03d}.pth'))
 
     history['best_accuary'] = best_accuray
+    history['best_epoch'] = best_epoch
     
     sorted_accuracies = sorted(history['accuracy'], reverse=True)
     top10_avg_accuracy = sum(sorted_accuracies[:10]) / min(10, len(sorted_accuracies))

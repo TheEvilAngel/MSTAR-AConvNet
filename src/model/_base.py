@@ -41,23 +41,15 @@ class Model(object):
         self.criterion = torch.nn.CrossEntropyLoss()
         print(f"Parameter setup took {time.time() - t0:.2f}s")
 
-        print("Creating optimizers...")
+        print("Creating optimizer...")
         t0 = time.time()
-        # 创建两个优化器：一个用于主网络，一个用于CFM
+        # 使用一个优化器优化所有参数
         self.optimizer = torch.optim.SGD(
-            [p for n, p in self.net.named_parameters() if not n.startswith('cfm.')],
+            self.net.parameters(),
             lr=self.lr,
             momentum=self.momentum,
             weight_decay=self.weight_decay
         )
-        
-        # 只有在使用CFM时才创建CFM优化器
-        self.cfm_optimizer = None
-        if self.net.use_cfm:
-            self.cfm_optimizer = torch.optim.Adam(
-                self.net.cfm.parameters(),
-                lr=params.get('cfm_lr', 1e-4)
-            )
         print(f"Optimizer creation took {time.time() - t0:.2f}s")
 
         print("Setting up learning rate scheduler...")
@@ -85,16 +77,12 @@ class Model(object):
 
         # 清零所有梯度
         self.optimizer.zero_grad()
-        if self.net.use_cfm and self.cfm_optimizer is not None:
-            self.cfm_optimizer.zero_grad()
         
         # 反向传播
         loss.backward()
         
         # 更新参数
         self.optimizer.step()
-        if self.net.use_cfm and self.cfm_optimizer is not None:
-            self.cfm_optimizer.step()
 
         return loss.item()
 
@@ -111,14 +99,10 @@ class Model(object):
             'network_state_dict': self.net.state_dict(),
             'optimizer_state_dict': self.optimizer.state_dict(),
         }
-        if self.net.use_cfm and self.cfm_optimizer is not None:
-            save_dict['cfm_optimizer_state_dict'] = self.cfm_optimizer.state_dict()
         torch.save(save_dict, path)
 
     def load(self, path):
         checkpoint = torch.load(path)
         self.net.load_state_dict(checkpoint['network_state_dict'])
         self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-        if self.net.use_cfm and self.cfm_optimizer is not None and 'cfm_optimizer_state_dict' in checkpoint:
-            self.cfm_optimizer.load_state_dict(checkpoint['cfm_optimizer_state_dict'])
         self.net.eval()

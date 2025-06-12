@@ -1,6 +1,6 @@
 {
-  "model_name": "AConvNet-EOC-2-VV-sar",
-  "dataset": "eoc-2-vv",
+  "model_name": "AConvNet-EOC-2-CV-sar1",
+  "dataset": "eoc-2-cv",
   "num_classes": 4,
   "channels": 1,
   "batch_size": 10,
@@ -13,8 +13,8 @@
   "dropout_rate": 0.5,
   "data_type": "sar1",
   "data_hrrp_type": "hrrp_column_complex",
-  "train_type": "sar",
+  "train_type": "cfm",
   "cfm_input_dim": 100,
-  "use_cfm": false,
+  "use_cfm": true,
   "column_group_size": 100
 }

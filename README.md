@@ -276,8 +276,12 @@ $ python3 generate_dataset.py --is_train=False --use_phase=False --chip_size=128
 $ python3 generate_dataset.py --is_train=True --use_phase=False --chip_size=128 --patch_size=128 --dataset=eoc-1-t72-a64 --type=sar
 $ python3 generate_dataset.py --is_train=False --use_phase=False --chip_size=128 --patch_size=128 --dataset=eoc-1-t72-a64 --type=sar
 
+$ python3 generate_dataset.py --is_train=True --use_phase=True --chip_size=100 --patch_size=100 --dataset=eoc-1-t72-a64 --type=hrrp_column_complex --column_group_size=100
+$ python3 generate_dataset.py --is_train=False --use_phase=True --chip_size=100 --patch_size=100 --dataset=eoc-1-t72-a64 --type=hrrp_column_complex --column_group_size=100
+
 $ cd ..
 $ python3 train.py --config_name=config/AConvNet-EOC-1-T72-A64-sar.json
+$ python3 train.py --config_name=config/AConvNet-EOC-1-T72-A64-sar-cfm.json
 ```
 
 ##### Results of EOC-1
@@ -360,8 +364,15 @@ $ python3 generate_dataset.py --is_train=False --use_phase=True --chip_size=128 
 $ python3 generate_dataset.py --is_train=True --use_phase=False --chip_size=128 --patch_size=128 --dataset=eoc-2-cv --type=sar
 $ python3 generate_dataset.py --is_train=False --use_phase=False --chip_size=128 --patch_size=128 --dataset=eoc-2-cv --type=sar
 
+$ python3 generate_dataset.py --is_train=True --use_phase=False --chip_size=100 --patch_size=100 --dataset=eoc-2-cv --type=sar1
+$ python3 generate_dataset.py --is_train=False --use_phase=False --chip_size=128 --patch_size=128 --dataset=eoc-2-cv --type=sar1
+
+$ python3 generate_dataset.py --is_train=True --use_phase=True --chip_size=100 --patch_size=100 --dataset=eoc-2-cv --type=hrrp_column_complex --column_group_size=100
+$ python3 generate_dataset.py --is_train=False --use_phase=True --chip_size=100 --patch_size=100 --dataset=eoc-2-cv --type=hrrp_column_complex --column_group_size=100
+
 $ cd ..
 $ python3 train.py --config_name=config/AConvNet-EOC-2-CV-sar.json
+$ python3 train.py --config_name=config/AConvNet-EOC-2-CV-sar-cfm.json
 ```
 
 ##### Results of EOC-2 Configuration Variants
@@ -452,8 +463,16 @@ $ python3 generate_dataset.py --is_train=False --use_phase=True --chip_size=128 
 $ python3 generate_dataset.py --is_train=True --use_phase=False --chip_size=128 --patch_size=128 --dataset=eoc-2-vv --type=sar
 $ python3 generate_dataset.py --is_train=False --use_phase=False --chip_size=128 --patch_size=128 --dataset=eoc-2-vv --type=sar
 
+$ python3 generate_dataset.py --is_train=True --use_phase=False --chip_size=100 --patch_size=100 --dataset=eoc-2-vv --type=sar1
+$ python3 generate_dataset.py --is_train=False --use_phase=False --chip_size=128 --patch_size=128 --dataset=eoc-2-vv --type=sar1
+
+$ python3 generate_dataset.py --is_train=True --use_phase=True --chip_size=100 --patch_size=100 --dataset=eoc-2-vv --type=hrrp_column_complex --column_group_size=100
+$ python3 generate_dataset.py --is_train=False --use_phase=True --chip_size=100 --patch_size=100 --dataset=eoc-2-vv --type=hrrp_column_complex --column_group_size=100
+
 $ cd ..
 $ python3 train.py --config_name=config/AConvNet-EOC-2-VV-sar.json
+$ python3 train.py --config_name=config/AConvNet-EOC-2-VV-sar-cfm.json
+
 ```
 
 ##### Results of EOC-2 Version Variants

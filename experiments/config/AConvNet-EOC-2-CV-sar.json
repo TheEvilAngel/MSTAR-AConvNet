@@ -17,5 +17,6 @@
   "cfm_input_dim": 100,
   "use_cfm": false,
   "column_group_size": 100,
-  "gpu_id": 0
+  "gpu_id": "2",
+  "runs": 10
 }

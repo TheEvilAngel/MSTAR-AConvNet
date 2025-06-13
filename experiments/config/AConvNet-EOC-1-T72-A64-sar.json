@@ -16,5 +16,7 @@
   "train_type": "sar",
   "cfm_input_dim": 100,
   "use_cfm": false,
-  "column_group_size": 100
+  "column_group_size": 100,
+  "gpu_id": "1",
+  "runs": 10
 }

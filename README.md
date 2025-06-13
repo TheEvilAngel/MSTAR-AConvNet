@@ -174,6 +174,7 @@ $ python3 generate_dataset.py --is_train=True --use_phase=True --chip_size=128 -
 $ python3 generate_dataset.py --is_train=False --use_phase=True --chip_size=128 --patch_size=128 --dataset=soc --type=hrrp_row
 $ cd ..
 $ python3 train.py --config_name=config/AConvNet-SOC-sar.json
+$ python3 train.py --config_name=config/AConvNet-SOC-sar-cfm.json
 ```
 
 ##### Results of SOC

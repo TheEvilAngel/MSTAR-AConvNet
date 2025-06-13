@@ -16,5 +16,7 @@
   "train_type": "cfm",
   "cfm_input_dim": 100,
   "use_cfm": true,
-  "column_group_size": 100
+  "column_group_size": 100,
+  "gpu_id": "2",
+  "runs": 10
 }

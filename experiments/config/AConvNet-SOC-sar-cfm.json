@@ -15,6 +15,8 @@
   "data_hrrp_type": "hrrp_column_complex",
   "train_type": "cfm",
   "cfm_input_dim": 100,
-  "use_cfm": false,
-  "column_group_size": 100
+  "use_cfm": true,
+  "column_group_size": 100,
+  "gpu_id": "0",
+  "runs": 10
 }

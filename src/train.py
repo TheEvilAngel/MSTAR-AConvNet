@@ -126,6 +126,7 @@ def run(epochs, dataset, classes, channels, batch_size,
         print(f'Train set size: {len(train_set.dataset)}')
         print(f'Validation set size: {len(valid_set.dataset)}')
 
+        # 每次run都创建新的模型实例，确保从初始状态开始
         m = model.Model(
             classes=classes, dropout_rate=dropout_rate, channels=channels,
             lr=lr, lr_step=lr_step, lr_decay=lr_decay,
@@ -155,14 +156,17 @@ def run(epochs, dataset, classes, channels, batch_size,
                     _loss.append(m.optimize(images, labels))
 
             if m.lr_scheduler:
-                lr = m.lr_scheduler.get_last_lr()[0]
+                current_lr = m.lr_scheduler.get_last_lr()[0]  # 使用局部变量记录当前学习率
                 m.lr_scheduler.step()
-
-            accuracy = validation(m, valid_set)
-
-            logging.info(
-                f'Run {run_idx + 1}/{runs} | Epoch: {epoch + 1:03d}/{epochs:03d} | loss={np.mean(_loss):.4f} | lr={lr} | accuracy={accuracy:.2f}'
-            )
+                accuracy = validation(m, valid_set)
+                logging.info(
+                    f'Run {run_idx + 1}/{runs} | Epoch: {epoch + 1:03d}/{epochs:03d} | loss={np.mean(_loss):.4f} | lr={current_lr:.6f} | accuracy={accuracy:.2f}'
+                )
+            else:
+                accuracy = validation(m, valid_set)
+                logging.info(
+                    f'Run {run_idx + 1}/{runs} | Epoch: {epoch + 1:03d}/{epochs:03d} | loss={np.mean(_loss):.4f} | accuracy={accuracy:.2f}'
+                )
 
             run_history['loss'].append(np.mean(_loss))
             run_history['accuracy'].append(accuracy)

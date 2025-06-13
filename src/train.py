@@ -76,41 +76,63 @@ def validation(m, ds):
     return accuracy
 
 
+def save_checkpoint(checkpoint_path, run_idx, epoch, model, optimizer, scheduler, all_runs_history):
+    checkpoint = {
+        'run_idx': run_idx,
+        'epoch': epoch,
+        'model_state_dict': model.state_dict(),
+        'optimizer_state_dict': optimizer.state_dict(),
+        'scheduler_state_dict': scheduler.state_dict() if scheduler else None,
+        'all_runs_history': all_runs_history,
+        'random_state': np.random.get_state(),
+        'torch_random_state': torch.get_rng_state(),
+        'cuda_random_state': torch.cuda.get_rng_state() if torch.cuda.is_available() else None
+    }
+    
+    # 先保存到临时文件
+    temp_checkpoint_path = checkpoint_path + '.tmp'
+    try:
+        torch.save(checkpoint, temp_checkpoint_path)
+        # 如果保存成功，则替换原文件
+        if os.path.exists(checkpoint_path):
+            os.remove(checkpoint_path)
+        os.rename(temp_checkpoint_path, checkpoint_path)
+        logging.info(f'成功保存检查点：run {run_idx + 1}, epoch {epoch + 1}')
+    except Exception as e:
+        logging.error(f'保存检查点失败：{str(e)}')
+        if os.path.exists(temp_checkpoint_path):
+            os.remove(temp_checkpoint_path)
+        raise e
+
+def load_checkpoint(checkpoint_path):
+    if not os.path.exists(checkpoint_path):
+        return None
+        
+    try:
+        checkpoint = torch.load(checkpoint_path)
+        # 恢复随机数状态
+        np.random.set_state(checkpoint['random_state'])
+        torch.set_rng_state(checkpoint['torch_random_state'])
+        if checkpoint['cuda_random_state'] is not None and torch.cuda.is_available():
+            torch.cuda.set_rng_state(checkpoint['cuda_random_state'])
+        logging.info(f'成功加载检查点：run {checkpoint["run_idx"] + 1}, epoch {checkpoint["epoch"] + 1}')
+        return checkpoint
+    except Exception as e:
+        logging.error(f'加载检查点失败：{str(e)}')
+        # 如果检查点文件损坏，将其重命名为.corrupted
+        corrupted_path = checkpoint_path + '.corrupted'
+        if os.path.exists(corrupted_path):
+            os.remove(corrupted_path)
+        os.rename(checkpoint_path, corrupted_path)
+        logging.warning(f'已将损坏的检查点文件重命名为：{corrupted_path}')
+        return None
+
 def run(epochs, dataset, classes, channels, batch_size,
         lr, lr_step, lr_decay, weight_decay, dropout_rate,
         model_name, data_type, data_hrrp_type, train_type, column_group_size, cfm_input_dim, use_cfm, experiments_path=None, runs=1):
-    # 存储所有运行的结果
-    all_runs_history = {
-        'runs': [],
-        'best_run': None,
-        'best_accuracy': 0.0,
-        'best_run_index': 0,
-        'mean_accuracy': 0.0,
-        'std_accuracy': 0.0,
-        'config': {
-            'dataset': dataset,
-            'num_classes': classes,
-            'channels': channels,
-            'epochs': epochs,
-            'batch_size': batch_size,
-            'lr': lr,
-            'lr_step': lr_step,
-            'lr_decay': lr_decay,
-            'weight_decay': weight_decay,
-            'dropout_rate': dropout_rate,
-            'model_name': model_name,
-            'data_type': data_type,
-            'train_type': train_type,
-            "data_hrrp_type": "hrrp_column_complex",
-            'column_group_size': column_group_size,
-            'cfm_input_dim': cfm_input_dim,
-            'use_cfm': use_cfm,
-            'runs': runs
-        }
-    }
-
+    
     datetime_str = datetime.now().strftime('%Y%m%d_%H%M%S')
-    model_path = os.path.join(experiments_path, f'model/{model_name}/{train_type}/{datetime_str}')
+    model_path = os.path.join(experiments_path, f'model/{model_name}/{train_type}')
     if not os.path.exists(model_path):
         os.makedirs(model_path, exist_ok=True)
 
@@ -118,7 +140,46 @@ def run(epochs, dataset, classes, channels, batch_size,
     if not os.path.exists(history_path):
         os.makedirs(history_path, exist_ok=True)
 
-    for run_idx in range(runs):
+    # 检查点路径
+    checkpoint_path = os.path.join(model_path, 'checkpoint.pth')
+    
+    # 尝试加载检查点
+    checkpoint = load_checkpoint(checkpoint_path)
+    if checkpoint:
+        start_run_idx = checkpoint['run_idx']
+        all_runs_history = checkpoint['all_runs_history']
+    else:
+        start_run_idx = 0
+        all_runs_history = {
+            'runs': [],
+            'best_run': None,
+            'best_accuracy': 0.0,
+            'best_run_index': 0,
+            'mean_accuracy': 0.0,
+            'std_accuracy': 0.0,
+            'config': {
+                'dataset': dataset,
+                'num_classes': classes,
+                'channels': channels,
+                'epochs': epochs,
+                'batch_size': batch_size,
+                'lr': lr,
+                'lr_step': lr_step,
+                'lr_decay': lr_decay,
+                'weight_decay': weight_decay,
+                'dropout_rate': dropout_rate,
+                'model_name': model_name,
+                'data_type': data_type,
+                'train_type': train_type,
+                "data_hrrp_type": "hrrp_column_complex",
+                'column_group_size': column_group_size,
+                'cfm_input_dim': cfm_input_dim,
+                'use_cfm': use_cfm,
+                'runs': runs
+            }
+        }
+
+    for run_idx in range(start_run_idx, runs):
         logging.info(f'Starting run {run_idx + 1}/{runs}')
         
         train_set = load_dataset('dataset', True, use_cfm, dataset, data_type, data_hrrp_type, batch_size, column_group_size)
@@ -126,12 +187,22 @@ def run(epochs, dataset, classes, channels, batch_size,
         print(f'Train set size: {len(train_set.dataset)}')
         print(f'Validation set size: {len(valid_set.dataset)}')
 
-        # 每次run都创建新的模型实例，确保从初始状态开始
         m = model.Model(
             classes=classes, dropout_rate=dropout_rate, channels=channels,
             lr=lr, lr_step=lr_step, lr_decay=lr_decay,
             weight_decay=weight_decay, cfm_input_dim=cfm_input_dim, use_cfm=use_cfm
         )
+
+        # 如果是恢复训练且是第一个要恢复的run
+        if checkpoint and run_idx == start_run_idx:
+            logging.info(f'Loading checkpoint from run {run_idx + 1}, epoch {checkpoint["epoch"] + 1}')
+            m.net.load_state_dict(checkpoint['model_state_dict'])
+            m.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+            if checkpoint['scheduler_state_dict'] and m.lr_scheduler:
+                m.lr_scheduler.load_state_dict(checkpoint['scheduler_state_dict'])
+            start_epoch = checkpoint['epoch'] + 1
+        else:
+            start_epoch = 0
 
         run_history = {
             'loss': [],
@@ -143,49 +214,54 @@ def run(epochs, dataset, classes, channels, batch_size,
         best_accuracy = 0.0
         best_epoch = 0
 
-        for epoch in range(epochs):
-            _loss = []
+        try:
+            for epoch in range(start_epoch, epochs):
+                _loss = []
 
-            m.net.train()
-            for i, data in enumerate(tqdm(train_set)):
-                if use_cfm:
-                    images, labels, _, hrrp_data = data
-                    _loss.append(m.optimize(images, labels, hrrp_data))
+                m.net.train()
+                for i, data in enumerate(tqdm(train_set)):
+                    if use_cfm:
+                        images, labels, _, hrrp_data = data
+                        _loss.append(m.optimize(images, labels, hrrp_data))
+                    else:
+                        images, labels, _ = data
+                        _loss.append(m.optimize(images, labels))
+
+                if m.lr_scheduler:
+                    current_lr = m.lr_scheduler.get_last_lr()[0]
+                    m.lr_scheduler.step()
+                    accuracy = validation(m, valid_set)
+                    logging.info(
+                        f'Run {run_idx + 1}/{runs} | Epoch: {epoch + 1:03d}/{epochs:03d} | loss={np.mean(_loss):.4f} | lr={current_lr:.6f} | accuracy={accuracy:.2f}'
+                    )
                 else:
-                    images, labels, _ = data
-                    _loss.append(m.optimize(images, labels))
+                    accuracy = validation(m, valid_set)
+                    logging.info(
+                        f'Run {run_idx + 1}/{runs} | Epoch: {epoch + 1:03d}/{epochs:03d} | loss={np.mean(_loss):.4f} | accuracy={accuracy:.2f}'
+                    )
 
-            if m.lr_scheduler:
-                current_lr = m.lr_scheduler.get_last_lr()[0]  # 使用局部变量记录当前学习率
-                m.lr_scheduler.step()
-                accuracy = validation(m, valid_set)
-                logging.info(
-                    f'Run {run_idx + 1}/{runs} | Epoch: {epoch + 1:03d}/{epochs:03d} | loss={np.mean(_loss):.4f} | lr={current_lr:.6f} | accuracy={accuracy:.2f}'
-                )
-            else:
-                accuracy = validation(m, valid_set)
-                logging.info(
-                    f'Run {run_idx + 1}/{runs} | Epoch: {epoch + 1:03d}/{epochs:03d} | loss={np.mean(_loss):.4f} | accuracy={accuracy:.2f}'
-                )
+                run_history['loss'].append(np.mean(_loss))
+                run_history['accuracy'].append(accuracy)
+                
+                if accuracy > best_accuracy:
+                    best_accuracy = accuracy
+                    best_epoch = epoch + 1
+                    m.save(os.path.join(model_path, f'model-run{run_idx}-best.pth'))
 
-            run_history['loss'].append(np.mean(_loss))
-            run_history['accuracy'].append(accuracy)
-            
-            if accuracy > best_accuracy:
-                best_accuracy = accuracy
-                best_epoch = epoch + 1
-                # 保存当前运行的最佳模型，使用运行索引命名
-                m.save(os.path.join(model_path, f'model-run{run_idx}-best.pth'))
+                # 每个epoch结束后保存检查点
+                save_checkpoint(checkpoint_path, run_idx, epoch, m.net, m.optimizer, m.lr_scheduler, all_runs_history)
+
+        except Exception as e:
+            logging.error(f'Training interrupted at run {run_idx + 1}, epoch {epoch + 1}: {str(e)}')
+            raise e
 
         run_history['best_accuracy'] = best_accuracy
         run_history['best_epoch'] = best_epoch
         
-        # 更新最佳运行记录
         if best_accuracy > all_runs_history['best_accuracy']:
             all_runs_history['best_accuracy'] = best_accuracy
             all_runs_history['best_run_index'] = run_idx
             all_runs_history['best_run'] = run_history
-            # 保存所有运行中的最佳模型
             m.save(os.path.join(model_path, f'model-overall-best.pth'))
 
         all_runs_history['runs'].append(run_history)
@@ -198,6 +274,10 @@ def run(epochs, dataset, classes, channels, batch_size,
     # 保存历史记录
     with open(os.path.join(history_path, f'history-{model_name}-{train_type}-{datetime_str}.json'), mode='w', encoding='utf-8') as f:
         json.dump(all_runs_history, f, ensure_ascii=True, indent=2)
+    
+    # 训练完成后删除检查点
+    if os.path.exists(checkpoint_path):
+        os.remove(checkpoint_path)
 
 
 def main(_):

@@ -77,17 +77,36 @@ def validation(m, ds):
 
 def run(epochs, dataset, classes, channels, batch_size,
         lr, lr_step, lr_decay, weight_decay, dropout_rate,
-        model_name, data_type, data_hrrp_type, train_type, column_group_size, cfm_input_dim, use_cfm, experiments_path=None):
-    train_set = load_dataset('dataset', True, use_cfm, dataset, data_type, data_hrrp_type, batch_size, column_group_size)
-    valid_set = load_dataset('dataset', False, use_cfm, dataset, data_type, data_hrrp_type, batch_size, column_group_size)
-    print(f'Train set size: {len(train_set.dataset)}')
-    print(f'Validation set size: {len(valid_set.dataset)}')
-
-    m = model.Model(
-        classes=classes, dropout_rate=dropout_rate, channels=channels,
-        lr=lr, lr_step=lr_step, lr_decay=lr_decay,
-        weight_decay=weight_decay, cfm_input_dim=cfm_input_dim, use_cfm=use_cfm
-    )
+        model_name, data_type, data_hrrp_type, train_type, column_group_size, cfm_input_dim, use_cfm, experiments_path=None, runs=1):
+    # 存储所有运行的结果
+    all_runs_history = {
+        'runs': [],
+        'best_run': None,
+        'best_accuracy': 0.0,
+        'best_run_index': 0,
+        'mean_accuracy': 0.0,
+        'std_accuracy': 0.0,
+        'config': {
+            'dataset': dataset,
+            'num_classes': classes,
+            'channels': channels,
+            'epochs': epochs,
+            'batch_size': batch_size,
+            'lr': lr,
+            'lr_step': lr_step,
+            'lr_decay': lr_decay,
+            'weight_decay': weight_decay,
+            'dropout_rate': dropout_rate,
+            'model_name': model_name,
+            'data_type': data_type,
+            'train_type': train_type,
+            "data_hrrp_type": "hrrp_column_complex",
+            'column_group_size': column_group_size,
+            'cfm_input_dim': cfm_input_dim,
+            'use_cfm': use_cfm,
+            'runs': runs
+        }
+    }
 
     datetime_str = datetime.now().strftime('%Y%m%d_%H%M%S')
     model_path = os.path.join(experiments_path, f'model/{model_name}/{train_type}/{datetime_str}')
@@ -98,77 +117,82 @@ def run(epochs, dataset, classes, channels, batch_size,
     if not os.path.exists(history_path):
         os.makedirs(history_path, exist_ok=True)
 
-    history = {
-        'loss': [],
-        'accuracy': []
-    }
+    for run_idx in range(runs):
+        logging.info(f'Starting run {run_idx + 1}/{runs}')
+        
+        train_set = load_dataset('dataset', True, use_cfm, dataset, data_type, data_hrrp_type, batch_size, column_group_size)
+        valid_set = load_dataset('dataset', False, use_cfm, dataset, data_type, data_hrrp_type, batch_size, column_group_size)
+        print(f'Train set size: {len(train_set.dataset)}')
+        print(f'Validation set size: {len(valid_set.dataset)}')
 
-    # 在保存history之前，添加配置信息
-    history['config'] = {
-        'dataset': dataset,
-        'num_classes': classes,
-        'channels': channels,
-        'epochs': epochs,
-        'batch_size': batch_size,
-        'lr': lr,
-        'lr_step': lr_step,
-        'lr_decay': lr_decay,
-        'weight_decay': weight_decay,
-        'dropout_rate': dropout_rate,
-        'model_name': model_name,
-        'data_type': data_type,
-        'train_type': train_type,
-        "data_hrrp_type": "hrrp_column_complex",
-        'column_group_size': column_group_size,
-        'cfm_input_dim': cfm_input_dim,
-        'use_cfm': use_cfm
-    }
-
-    best_accuray = 0.0
-    best_epoch = 0
-    # pdb.set_trace()
-    for epoch in range(epochs):
-        _loss = []
-
-        m.net.train()
-        for i, data in enumerate(tqdm(train_set)):
-            if use_cfm:
-                images, labels, _, hrrp_data = data
-                _loss.append(m.optimize(images, labels, hrrp_data))
-            else:
-                images, labels, _ = data
-                _loss.append(m.optimize(images, labels))
-
-        if m.lr_scheduler:
-            lr = m.lr_scheduler.get_last_lr()[0]
-            m.lr_scheduler.step()
-
-        accuracy = validation(m, valid_set)
-
-        logging.info(
-            f'Epoch: {epoch + 1:03d}/{epochs:03d} | loss={np.mean(_loss):.4f} | lr={lr} | accuracy={accuracy:.2f}'
+        m = model.Model(
+            classes=classes, dropout_rate=dropout_rate, channels=channels,
+            lr=lr, lr_step=lr_step, lr_decay=lr_decay,
+            weight_decay=weight_decay, cfm_input_dim=cfm_input_dim, use_cfm=use_cfm
         )
 
-        history['loss'].append(np.mean(_loss))
-        history['accuracy'].append(accuracy)
-        if accuracy > best_accuray:
-            best_accuray = accuracy
-            best_epoch = epoch + 1
-            m.save(os.path.join(model_path, f'model-best.pth'))
+        run_history = {
+            'loss': [],
+            'accuracy': [],
+            'best_accuracy': 0.0,
+            'best_epoch': 0
+        }
 
-        if experiments_path:
-            m.save(os.path.join(model_path, f'model-{epoch + 1:03d}.pth'))
+        best_accuracy = 0.0
+        best_epoch = 0
 
-    history['best_accuary'] = best_accuray
-    history['best_epoch'] = best_epoch
-    
-    sorted_accuracies = sorted(history['accuracy'], reverse=True)
-    top10_avg_accuracy = sum(sorted_accuracies[:10]) / min(10, len(sorted_accuracies))
-    history['top10_avg_acc'] = top10_avg_accuracy
-    
-    with open(os.path.join(history_path, f'history-{model_name}-{train_type}-{datetime_str}.json'), mode='w', encoding='utf-8') as f:
-        json.dump(history, f, ensure_ascii=True, indent=2)
+        for epoch in range(epochs):
+            _loss = []
+
+            m.net.train()
+            for i, data in enumerate(tqdm(train_set)):
+                if use_cfm:
+                    images, labels, _, hrrp_data = data
+                    _loss.append(m.optimize(images, labels, hrrp_data))
+                else:
+                    images, labels, _ = data
+                    _loss.append(m.optimize(images, labels))
+
+            if m.lr_scheduler:
+                lr = m.lr_scheduler.get_last_lr()[0]
+                m.lr_scheduler.step()
+
+            accuracy = validation(m, valid_set)
+
+            logging.info(
+                f'Run {run_idx + 1}/{runs} | Epoch: {epoch + 1:03d}/{epochs:03d} | loss={np.mean(_loss):.4f} | lr={lr} | accuracy={accuracy:.2f}'
+            )
+
+            run_history['loss'].append(np.mean(_loss))
+            run_history['accuracy'].append(accuracy)
+            
+            if accuracy > best_accuracy:
+                best_accuracy = accuracy
+                best_epoch = epoch + 1
+                # 保存当前运行的最佳模型，使用运行索引命名
+                m.save(os.path.join(model_path, f'model-run{run_idx}-best.pth'))
+
+        run_history['best_accuracy'] = best_accuracy
+        run_history['best_epoch'] = best_epoch
         
+        # 更新最佳运行记录
+        if best_accuracy > all_runs_history['best_accuracy']:
+            all_runs_history['best_accuracy'] = best_accuracy
+            all_runs_history['best_run_index'] = run_idx
+            all_runs_history['best_run'] = run_history
+            # 保存所有运行中的最佳模型
+            m.save(os.path.join(model_path, f'model-overall-best.pth'))
+
+        all_runs_history['runs'].append(run_history)
+
+    # 计算所有运行的统计信息
+    all_accuracies = [run['best_accuracy'] for run in all_runs_history['runs']]
+    all_runs_history['mean_accuracy'] = np.mean(all_accuracies)
+    all_runs_history['std_accuracy'] = np.std(all_accuracies)
+    
+    # 保存历史记录
+    with open(os.path.join(history_path, f'history-{model_name}-{train_type}-{datetime_str}.json'), mode='w', encoding='utf-8') as f:
+        json.dump(all_runs_history, f, ensure_ascii=True, indent=2)
 
 
 def main(_):
@@ -201,9 +225,12 @@ def main(_):
     use_cfm = config['use_cfm']
     column_group_size = config['column_group_size']
     
+    # 从配置文件中读取runs参数，默认为1
+    runs = config.get('runs', 1)
+    
     run(epochs, dataset, classes, channels, batch_size,
         lr, lr_step, lr_decay, weight_decay, dropout_rate,
-        model_name, data_type, data_hrrp_type, train_type, column_group_size, cfm_input_dim, use_cfm, experiments_path)
+        model_name, data_type, data_hrrp_type, train_type, column_group_size, cfm_input_dim, use_cfm, experiments_path, runs)
 
     logging.info('Finish')
 

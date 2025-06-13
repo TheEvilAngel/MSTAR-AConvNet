@@ -51,6 +51,7 @@ class Dataset(torch.utils.data.Dataset):
 
         if self.transform:
             _image = self.transform(_image)
+        # TODO hrrp not transform
 
         if self.use_cfm:
             return _image, _label, self.serial_number[idx], self.hrrp_data[idx]

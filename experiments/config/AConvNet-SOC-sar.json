@@ -13,8 +13,10 @@
   "dropout_rate": 0.5,
   "data_type": "sar1",
   "data_hrrp_type": "hrrp_column_complex",
-  "train_type": "sar",
+  "train_type": "sar_test",
   "cfm_input_dim": 100,
   "use_cfm": false,
-  "column_group_size": 100
+  "column_group_size": 100,
+  "gpu_id": "7",
+  "runs": 2
 }

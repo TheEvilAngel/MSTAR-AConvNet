@@ -3,15 +3,13 @@ import torch.nn as nn
 
 
 class CFM(nn.Module):
-    def __init__(self, input_dim, channels=1):
+    def __init__(self, input_dim, output_dim):
         super(CFM, self).__init__()
-        # 计算目标输出维度：5*5*channels*16
-        self.output_dim = 5 * 5 * channels * 16
-        
+        # 计算目标输出维度：5*5*channels*16       
         # 三层线性层
         self.linear1 = nn.Linear(input_dim, 256)
         self.linear2 = nn.Linear(256, 512)
-        self.linear3 = nn.Linear(512, self.output_dim)
+        self.linear3 = nn.Linear(512, output_dim)
         
         # 激活函数
         self.relu = nn.ReLU(inplace=True)

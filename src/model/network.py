@@ -29,8 +29,8 @@ class Network(nn.Module):
 
         print("  Creating CFM...")
         t0 = time.time()
-        # 创建CFM实例
-        self.cfm = cfm.CFM(self.cfm_input_dim, self.channels)
+        # 只在use_cfm为True时创建CFM实例
+        self.cfm = cfm.CFM(self.cfm_input_dim, (5*5*self.channels*16) + 16) if self.use_cfm else None
         print(f"  CFM creation took {time.time() - t0:.2f}s")
 
         print("  Creating first conv layer...")
@@ -77,20 +77,23 @@ class Network(nn.Module):
         # 1. 重塑输入x为[1, B*C, 88, 88]
         x_reshaped = x.view(1, batch_size * channels, height, width)
         
-        # 2. 处理CFM输出的权重
-        weights = self.cfm(cfm_input)  # [B, 5*5*C*16]
-        # 重塑为[B, 16, C, 5, 5]
-        weights = weights.view(batch_size, 16, channels, 5, 5)
-        # 转换为[16*B, C, 5, 5]
-        weights = weights.permute(1, 0, 2, 3, 4).contiguous()
-        weights = weights.view(16 * batch_size, channels, 5, 5)
+        # 2. 处理CFM输出的权重和偏置
+        cfm_output = self.cfm(cfm_input)  # [B, 5*5*C*16 + 16]
+        # 分离权重和偏置
+        weights = cfm_output[:, :-16]  # [B, 5*5*C*16]
+        bias = cfm_output[:, -16:]     # [B, 16]
+        
+        # 直接重塑权重为[B*16, C, 5, 5]
+        weights = weights.reshape(batch_size * 16, channels, 5, 5)
+        
+        # 重塑偏置为[B*16]
+        bias = bias.reshape(-1)  # [B*16]
         
         # 3. 执行分组卷积
-        # F.conv2d参数：input, weight, bias=None, stride=1, padding=0, dilation=1, groups=1
         x_conv = torch.nn.functional.conv2d(
             x_reshaped,           # [1, B*C, 88, 88]
-            weights,              # [16*B, C, 5, 5]
-            bias=None,
+            weights,              # [B*16, C, 5, 5]
+            bias=bias,            # [B*16]
             stride=1,
             padding=0,
             groups=batch_size     # 分组数等于batch_size

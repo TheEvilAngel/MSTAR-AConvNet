@@ -1,5 +1,6 @@
 import os
-os.environ['CUDA_VISIBLE_DEVICES'] = '7'
+# 移除硬编码的GPU设置
+# os.environ['CUDA_VISIBLE_DEVICES'] = '7'
 
 from absl import logging
 from absl import flags
@@ -201,6 +202,11 @@ def main(_):
     config_name = FLAGS.config_name
 
     config = common.load_config(os.path.join(experiments_path, config_name))
+
+    # 从配置文件中读取GPU设置
+    gpu_id = config.get('gpu_id', '0')  # 默认使用GPU 0
+    os.environ['CUDA_VISIBLE_DEVICES'] = gpu_id
+    logging.info(f'Using GPU: {gpu_id}')
 
     dataset = config['dataset']
     classes = config['num_classes']

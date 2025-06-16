@@ -45,10 +45,11 @@ class HRRPGenerator:
         # FFT变换
         _image = np.fft.ifft(image, axis=1)  # column is cross-range
         _image = np.abs(_image)
-        _image = _image / np.max(_image, axis=0, keepdims=True)  # normalize column
+        _image = _image / np.max(_image, axis=0)  # normalize column
+        _image = _image[:,:,0]
         
         # 保存BMP图像
-        Image.fromarray(self.data_scaling(_image[:,:,0])).convert('L').save(
+        Image.fromarray(self.data_scaling(_image)).convert('L').save(
             os.path.join(dst_path, f'{name}-{index}.bmp')
         )
         

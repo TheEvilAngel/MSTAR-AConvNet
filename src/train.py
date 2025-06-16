@@ -129,8 +129,10 @@ def load_checkpoint(checkpoint_path):
 
 def run(epochs, dataset, classes, channels, batch_size,
         lr, lr_step, lr_decay, weight_decay, dropout_rate,
-        model_name, data_type, data_hrrp_type, train_type, column_group_size, cfm_input_dim, use_cfm, experiments_path=None, runs=1):
-    
+        model_name, data_type, data_hrrp_type, train_type, 
+        column_group_size, cfm_input_dim, use_cfm, cfm_type,
+        experiments_path=None, runs=1):
+
     datetime_str = datetime.now().strftime('%Y%m%d_%H%M%S')
     model_path = os.path.join(experiments_path, f'model/{model_name}/{train_type}')
     if not os.path.exists(model_path):
@@ -175,6 +177,7 @@ def run(epochs, dataset, classes, channels, batch_size,
                 'column_group_size': column_group_size,
                 'cfm_input_dim': cfm_input_dim,
                 'use_cfm': use_cfm,
+                'cfm_type': cfm_type,
                 'runs': runs
             }
         }
@@ -190,7 +193,7 @@ def run(epochs, dataset, classes, channels, batch_size,
         m = model.Model(
             classes=classes, dropout_rate=dropout_rate, channels=channels,
             lr=lr, lr_step=lr_step, lr_decay=lr_decay,
-            weight_decay=weight_decay, cfm_input_dim=cfm_input_dim, use_cfm=use_cfm
+            weight_decay=weight_decay, cfm_input_dim=cfm_input_dim, use_cfm=use_cfm, cfm_type=cfm_type
         )
 
         # 如果是恢复训练且是第一个要恢复的run
@@ -313,6 +316,7 @@ def main(_):
     
     cfm_input_dim = config['cfm_input_dim']
     use_cfm = config['use_cfm']
+    cfm_type = config['cfm_type']
     column_group_size = config['column_group_size']
     
     # 从配置文件中读取runs参数，默认为1
@@ -320,7 +324,9 @@ def main(_):
     
     run(epochs, dataset, classes, channels, batch_size,
         lr, lr_step, lr_decay, weight_decay, dropout_rate,
-        model_name, data_type, data_hrrp_type, train_type, column_group_size, cfm_input_dim, use_cfm, experiments_path, runs)
+        model_name, data_type, data_hrrp_type, train_type, 
+        column_group_size, cfm_input_dim, use_cfm, cfm_type, 
+        experiments_path, runs)
 
     logging.info('Finish')
 

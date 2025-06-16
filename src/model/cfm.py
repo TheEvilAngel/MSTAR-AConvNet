@@ -1,29 +1,27 @@
 import torch
 import torch.nn as nn
+from .hrrp_model.hrrp_linear import HRRPLinear
+from .hrrp_model.hrrp_graph import HRRPGraphNet
+import pdb
 
 
 class CFM(nn.Module):
-    def __init__(self, input_dim, output_dim):
+    def __init__(self, input_dim, output_dim, cfm_type='hrrp_linear'):
         super(CFM, self).__init__()
-        # 计算目标输出维度：5*5*channels*16       
-        # 三层线性层
-        self.linear1 = nn.Linear(input_dim, 256)
-        self.linear2 = nn.Linear(256, 512)
-        self.linear3 = nn.Linear(512, output_dim)
+        self.cfm_type = cfm_type
         
-        # 激活函数
-        self.relu = nn.ReLU(inplace=True)
-        
-    def forward(self, x):
-        # 确保输入是二维的 [batch_size, input_dim]
-        if len(x.shape) == 1:
-            x = x.unsqueeze(0)
+        if cfm_type == 'hrrp_linear':
+            self.model = HRRPLinear(input_dim, output_dim)
+        elif cfm_type == 'hrrp_graph':
+            self.model = HRRPGraphNet(input_dim, output_dim)
+            self.distance_matrix = self.model.generate_distance_matrix(input_dim)
+        else:
+            raise ValueError(f"Unknown CFM type: {cfm_type}")
             
-        x = self.relu(self.linear1(x))
-        x = self.relu(self.linear2(x))
-        x = self.linear3(x)
-        
-        batch_size = x.shape[0]
-        # 重塑输出为卷积核的形状 [batch_size, 5, 5, channels, 16]
-        x = x.view(batch_size, -1)
-        return x 
+    def forward(self, x, distance_matrix=None):
+        if self.cfm_type == 'hrrp_linear':
+            return self.model(x)
+        elif self.cfm_type == 'hrrp_graph':
+            if x.dim() == 2:
+                x = x.unsqueeze(1)
+            return self.model(x, self.distance_matrix.to(x.device)) 

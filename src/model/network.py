@@ -22,6 +22,7 @@ class Network(nn.Module):
         self.channels = params.get('channels', 1)
         self.cfm_input_dim = params.get('cfm_input_dim', 100)  # CFM的输入维度
         self.use_cfm = params.get('use_cfm', True)  # 控制是否使用CFM
+        self.cfm_type = params.get('cfm_type', 'hrrp_linear')
 
         _w_init = params.get('w_init', lambda x: nn.init.kaiming_normal_(x, nonlinearity='relu'))
         _b_init = params.get('b_init', lambda x: nn.init.constant_(x, 0.1))
@@ -30,7 +31,7 @@ class Network(nn.Module):
         print("  Creating CFM...")
         t0 = time.time()
         # 只在use_cfm为True时创建CFM实例
-        self.cfm = cfm.CFM(self.cfm_input_dim, (5*5*self.channels*16) + 16) if self.use_cfm else None
+        self.cfm = cfm.CFM(self.cfm_input_dim, (5*5*self.channels*16) + 16, cfm_type=self.cfm_type) if self.use_cfm else None
         print(f"  CFM creation took {time.time() - t0:.2f}s")
 
         print("  Creating first conv layer...")

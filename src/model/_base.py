@@ -21,7 +21,8 @@ class Model(object):
             channels=params.get('channels', 1),
             dropout_rate=params.get('dropout_rate', 0.5),
             cfm_input_dim=params.get('cfm_input_dim', 100),
-            use_cfm=params.get('use_cfm', True)
+            use_cfm=params.get('use_cfm', True),
+            cfm_type=params.get('cfm_type', 'hrrp_linear')
         )
         print(f"Network creation took {time.time() - t0:.2f}s")
 

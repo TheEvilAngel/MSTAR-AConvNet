@@ -13,10 +13,10 @@
     "dropout_rate": 0.5,
     "data_type": "sar1",
     "data_hrrp_type": "hrrp_column_complex",
-    "train_type": "hrrp_linear_only",
-    "cfm_input_dim": 100,
+    "train_type": "hrrp_resnet_only",
+    "cfm_input_dim": 1,
     "use_cfm": true,
-    "cfm_type": "hrrp_linear",
+    "cfm_type": "resnet18",
     "column_group_size": 100,
     "gpu_id": "0",
     "runs": 1

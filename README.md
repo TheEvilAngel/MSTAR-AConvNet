@@ -175,6 +175,7 @@ $ python3 generate_dataset.py --is_train=False --use_phase=True --chip_size=128 
 $ cd ..
 $ python3 train.py --config_name=config/AConvNet-SOC-sar.json
 $ python3 train.py --config_name=config/AConvNet-SOC-sar-cfm.json
+$ python3 train_hrrp_only.py --config_name=config/AConvNet-SOC-hrrp-only.json
 ```
 
 ##### Results of SOC
@@ -473,6 +474,7 @@ $ python3 generate_dataset.py --is_train=False --use_phase=True --chip_size=100 
 $ cd ..
 $ python3 train.py --config_name=config/AConvNet-EOC-2-VV-sar.json
 $ python3 train.py --config_name=config/AConvNet-EOC-2-VV-sar-cfm.json
+$ python3 train_hrrp_only.py --config_name=config/AConvNet-EOC-2-VV-sar-cfm.json
 
 ```
 

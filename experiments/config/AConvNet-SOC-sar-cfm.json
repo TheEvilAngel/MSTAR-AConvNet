@@ -19,5 +19,5 @@
   "cfm_type": "hrrp_graph",
   "column_group_size": 100,
   "gpu_id": "0",
-  "runs": 10
+  "runs": 1
 }

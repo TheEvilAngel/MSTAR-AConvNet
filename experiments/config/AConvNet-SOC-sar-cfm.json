@@ -13,11 +13,11 @@
   "dropout_rate": 0.5,
   "data_type": "sar1",
   "data_hrrp_type": "hrrp_column_complex",
-  "train_type": "last_cfm_128_128",
+  "train_type": "last_cfm_64_32_no_conv",
   "cfm_input_dim": 100,
   "use_cfm": true,
   "cfm_type": "hrrp_graph",
   "column_group_size": 100,
-  "gpu_id": "2",
+  "gpu_id": "1",
   "runs": 1
 }

@@ -23,8 +23,8 @@ class Network(nn.Module):
         self.cfm_input_dim = params.get('cfm_input_dim', 100)  # CFM的输入维度
         self.use_cfm = params.get('use_cfm', True)  # 控制是否使用CFM
         self.cfm_type = params.get('cfm_type', 'hrrp_linear')
-        self.manifold_input_channels = params.get('manifold_input_channels',128)
-        self.manifold_output_channels = params.get('manifold_output_channels', 128)
+        self.manifold_input_channels = params.get('manifold_input_channels',64)
+        self.manifold_output_channels = params.get('manifold_output_channels', 32)
         self.kernel_size = params.get('kernel_size', 3)
 
         _w_init = params.get('w_init', lambda x: nn.init.kaiming_normal_(x, nonlinearity='relu'))

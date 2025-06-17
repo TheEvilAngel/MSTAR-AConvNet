@@ -23,8 +23,8 @@ class Network(nn.Module):
         self.cfm_input_dim = params.get('cfm_input_dim', 100)  # CFM的输入维度
         self.use_cfm = params.get('use_cfm', True)  # 控制是否使用CFM
         self.cfm_type = params.get('cfm_type', 'hrrp_linear')
-        self.manifold_input_channels = params.get('manifold_input_channels', 32)
-        self.manifold_output_channels = params.get('manifold_output_channels', 64)
+        self.manifold_input_channels = params.get('manifold_input_channels', 64)
+        self.manifold_output_channels = params.get('manifold_output_channels', 128)
         self.kernel_size = params.get('kernel_size', 3)
 
         _w_init = params.get('w_init', lambda x: nn.init.kaiming_normal_(x, nonlinearity='relu'))
@@ -65,14 +65,14 @@ class Network(nn.Module):
                 w_init=_w_init, b_init=_b_init
             ),
             _blocks.Conv2DBlock(
-                shape=[5, 5, 64, 128], stride=1, padding='valid', activation='relu',
+                shape=[5, 5, 64, self.manifold_input_channels], stride=1, padding='valid', activation='relu',
                 w_init=_w_init, b_init=_b_init
             ),
-            nn.Dropout(p=self.dropout_rate),
-            _blocks.Conv2DBlock(
-                shape=[3, 3, 128, self.manifold_input_channels], stride=1, padding='valid',
-                w_init=_w_init, b_init=nn.init.zeros_
-            ),
+            # nn.Dropout(p=self.dropout_rate),
+            # _blocks.Conv2DBlock(
+            #     shape=[3, 3, 128, self.manifold_input_channels], stride=1, padding='valid',
+            #     w_init=_w_init, b_init=nn.init.zeros_
+            # ),
             # nn.Flatten()
         )
         print(f"  Remaining layers creation took {time.time() - t0:.2f}s")
@@ -145,7 +145,7 @@ class Network(nn.Module):
             weights,              # [B*16, C, 5, 5]
             bias=bias,            # [B*16]
             stride=1,
-            padding=1,
+            padding=0,
             groups=batch_size     # 分组数等于batch_size
         )
         

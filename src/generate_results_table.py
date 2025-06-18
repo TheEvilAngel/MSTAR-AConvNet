@@ -23,7 +23,7 @@ def generate_results_table():
     
     # 定义CSV的表头
     headers = [
-        'dataset', 'data_type', 'use_cfm', 'data_hrrp_type',
+        'dataset', 'data_type', 'train_type', 'use_cfm', 'data_hrrp_type',
         'column_group_size', 'cfm_type', 'best_accuracy',
         'mean_accuracy', 'std_accuracy'
     ]
@@ -57,6 +57,7 @@ def generate_results_table():
             row = [
                 get_config_value(config, 'dataset'),
                 get_config_value(config, 'data_type'),
+                get_config_value(config, 'train_type'),
                 get_config_value(config, 'use_cfm'),
                 get_config_value(config, 'data_hrrp_type'),
                 get_config_value(config, 'column_group_size'),

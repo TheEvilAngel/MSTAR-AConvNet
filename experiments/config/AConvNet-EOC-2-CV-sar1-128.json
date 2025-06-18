@@ -1,0 +1,23 @@
+{
+  "model_name": "AConvNet-EOC-2-CV-sar1-128",
+  "dataset": "eoc-2-cv",
+  "num_classes": 4,
+  "channels": 1,
+  "batch_size": 10,
+  "epochs": 200,
+  "momentum": 0.9,
+  "lr": 1e-3,
+  "lr_step": [5],
+  "lr_decay": 0.1,
+  "weight_decay": 4e-3,
+  "dropout_rate": 0.5,
+  "data_type": "sar1-128",
+  "data_hrrp_type": "hrrp_column_complex",
+  "train_type": "sar-128",
+  "cfm_input_dim": 100,
+  "use_cfm": false,
+  "cfm_type": "hrrp_graph",
+  "column_group_size": 100,
+  "gpu_id": "2",
+  "runs": 10
+}

@@ -1,0 +1,23 @@
+{
+  "model_name": "AConvNet-SOC-sar1-128",
+  "dataset": "soc",
+  "num_classes": 10,
+  "channels": 1,
+  "batch_size": 10,
+  "epochs": 200,
+  "momentum": 0.9,
+  "lr": 1e-3,
+  "lr_step": [50],
+  "lr_decay": 0.1,
+  "weight_decay": 4e-3,
+  "dropout_rate": 0.5,
+  "data_type": "sar1-128",
+  "data_hrrp_type": "hrrp_column_complex",
+  "train_type": "sar",
+  "cfm_input_dim": 100,
+  "use_cfm": false,
+  "cfm_type": "hrrp_graph",
+  "column_group_size": 100,
+  "gpu_id": "2",
+  "runs": 10
+}

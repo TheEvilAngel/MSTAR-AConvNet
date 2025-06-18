@@ -169,11 +169,15 @@ $ python3 generate_dataset.py --is_train=False --use_phase=False --chip_size=100
 $ python3 generate_dataset.py --is_train=False --use_phase=True --chip_size=100 --patch_size=100 --dataset=soc --type=hrrp_column_complex --column_group_size=10
 $ python3 generate_dataset.py --is_train=False --use_phase=True --chip_size=100 --patch_size=100 --dataset=soc --type=hrrp_column_complex --column_group_size=100
 
+$ python3 generate_dataset.py --is_train=True --use_phase=True --chip_size=128 --patch_size=128 --dataset=soc --type=hrrp_column_complex --column_group_size=128
+$ python3 generate_dataset.py --is_train=False --use_phase=True --chip_size=128 --patch_size=128 --dataset=soc --type=hrrp_column_complex --column_group_size=128
+
 $ python3 generate_dataset.py --is_train=False --use_phase=False --chip_size=100 --patch_size=100 --dataset=soc --type=hrrp_column --column_group_size=10
 $ python3 generate_dataset.py --is_train=True --use_phase=True --chip_size=128 --patch_size=128 --dataset=soc --type=hrrp_row
 $ python3 generate_dataset.py --is_train=False --use_phase=True --chip_size=128 --patch_size=128 --dataset=soc --type=hrrp_row
 $ cd ..
 $ python3 train.py --config_name=config/AConvNet-SOC-sar.json
+$ python3 train.py --config_name=config/AConvNet-SOC-sar1-128.json
 $ python3 train.py --config_name=config/AConvNet-SOC-sar-cfm.json
 $ python3 train_hrrp_only.py --config_name=config/AConvNet-SOC-hrrp-only.json
 ```
@@ -281,8 +285,12 @@ $ python3 generate_dataset.py --is_train=False --use_phase=False --chip_size=128
 $ python3 generate_dataset.py --is_train=True --use_phase=True --chip_size=100 --patch_size=100 --dataset=eoc-1-t72-a64 --type=hrrp_column_complex --column_group_size=100
 $ python3 generate_dataset.py --is_train=False --use_phase=True --chip_size=100 --patch_size=100 --dataset=eoc-1-t72-a64 --type=hrrp_column_complex --column_group_size=100
 
+$ python3 generate_dataset.py --is_train=True --use_phase=True --chip_size=128 --patch_size=128 --dataset=eoc-1-t72-a64 --type=hrrp_column_complex --column_group_size=128
+$ python3 generate_dataset.py --is_train=False --use_phase=True --chip_size=128 --patch_size=128 --dataset=eoc-1-t72-a64 --type=hrrp_column_complex --column_group_size=128
+
 $ cd ..
 $ python3 train.py --config_name=config/AConvNet-EOC-1-T72-A64-sar.json
+$ python3 train.py --config_name=config/AConvNet-EOC-1-T72-A64-sar1-128.json
 $ python3 train.py --config_name=config/AConvNet-EOC-1-T72-A64-sar-cfm.json
 ```
 
@@ -369,11 +377,18 @@ $ python3 generate_dataset.py --is_train=False --use_phase=False --chip_size=128
 $ python3 generate_dataset.py --is_train=True --use_phase=False --chip_size=100 --patch_size=100 --dataset=eoc-2-cv --type=sar1
 $ python3 generate_dataset.py --is_train=False --use_phase=False --chip_size=128 --patch_size=128 --dataset=eoc-2-cv --type=sar1
 
+$ python3 generate_dataset.py --is_train=True --use_phase=False --chip_size=128 --patch_size=128 --dataset=eoc-2-cv --type=sar1-128
+$ python3 generate_dataset.py --is_train=False --use_phase=False --chip_size=128 --patch_size=128 --dataset=eoc-2-cv --type=sar1-128
+
 $ python3 generate_dataset.py --is_train=True --use_phase=True --chip_size=100 --patch_size=100 --dataset=eoc-2-cv --type=hrrp_column_complex --column_group_size=100
 $ python3 generate_dataset.py --is_train=False --use_phase=True --chip_size=100 --patch_size=100 --dataset=eoc-2-cv --type=hrrp_column_complex --column_group_size=100
 
+$ python3 generate_dataset.py --is_train=True --use_phase=True --chip_size=128 --patch_size=128 --dataset=eoc-2-cv --type=hrrp_column_complex --column_group_size=128
+$ python3 generate_dataset.py --is_train=False --use_phase=True --chip_size=128 --patch_size=128 --dataset=eoc-2-cv --type=hrrp_column_complex --column_group_size=128
+
 $ cd ..
 $ python3 train.py --config_name=config/AConvNet-EOC-2-CV-sar.json
+$ python3 train.py --config_name=config/AConvNet-EOC-2-CV-sar1-128.json
 $ python3 train.py --config_name=config/AConvNet-EOC-2-CV-sar-cfm.json
 ```
 
@@ -468,12 +483,19 @@ $ python3 generate_dataset.py --is_train=False --use_phase=False --chip_size=128
 $ python3 generate_dataset.py --is_train=True --use_phase=False --chip_size=100 --patch_size=100 --dataset=eoc-2-vv --type=sar1
 $ python3 generate_dataset.py --is_train=False --use_phase=False --chip_size=128 --patch_size=128 --dataset=eoc-2-vv --type=sar1
 
+$ python3 generate_dataset.py --is_train=True --use_phase=False --chip_size=128 --patch_size=128 --dataset=eoc-2-vv --type=sar1-128
+$ python3 generate_dataset.py --is_train=False --use_phase=False --chip_size=128 --patch_size=128 --dataset=eoc-2-vv --type=sar1-128
+
 $ python3 generate_dataset.py --is_train=True --use_phase=True --chip_size=100 --patch_size=100 --dataset=eoc-2-vv --type=hrrp_column_complex --column_group_size=100
 $ python3 generate_dataset.py --is_train=False --use_phase=True --chip_size=100 --patch_size=100 --dataset=eoc-2-vv --type=hrrp_column_complex --column_group_size=100
+
+$ python3 generate_dataset.py --is_train=True --use_phase=True --chip_size=128 --patch_size=128 --dataset=eoc-2-vv --type=hrrp_column_complex --column_group_size=128
+$ python3 generate_dataset.py --is_train=False --use_phase=True --chip_size=128 --patch_size=128 --dataset=eoc-2-vv --type=hrrp_column_complex --column_group_size=128
 
 $ cd ..
 $ python3 train.py --config_name=config/AConvNet-EOC-2-VV-sar.json
 $ python3 train.py --config_name=config/AConvNet-EOC-2-VV-sar-cfm.json
+$ python3 train.py --config_name=config/AConvNet-EOC-2-VV-sar1-128.json
 $ python3 train_hrrp_only.py --config_name=config/AConvNet-EOC-2-VV-sar-cfm.json
 
 ```

@@ -3,7 +3,7 @@
   "dataset": "soc",
   "num_classes": 10,
   "channels": 1,
-  "batch_size": 10,
+  "batch_size": 32,
   "epochs": 200,
   "momentum": 0.9,
   "lr": 1e-3,
@@ -13,11 +13,11 @@
   "dropout_rate": 0.5,
   "data_type": "sar1",
   "data_hrrp_type": "hrrp_column_complex",
-  "train_type": "last_cfm_64_32_no_conv_sar128",
+  "train_type": "last_cfm_64_32_no_conv_sar1_hrrp_column_complex_16-test",
   "cfm_input_dim": 128,
   "use_cfm": true,
   "cfm_type": "hrrp_graph",
-  "column_group_size": 128,
-  "gpu_id": "1",
-  "runs": 10
+  "column_group_size": 16,
+  "gpu_id": "0",
+  "runs": 2
 }

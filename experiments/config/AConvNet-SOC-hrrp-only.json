@@ -3,7 +3,7 @@
     "dataset": "soc",
     "num_classes": 10,
     "channels": 1,
-    "batch_size": 10,
+    "batch_size": 32,
     "epochs": 200,
     "momentum": 0.9,
     "lr": 1e-3,
@@ -12,13 +12,13 @@
     "weight_decay": 4e-3,
     "dropout_rate": 0.5,
     "data_type": "sar1",
-    "data_hrrp_type": "hrrp_column",
-    "train_type": "hrrp_resnet_only_abs",
-    "cfm_input_dim": 1,
+    "data_hrrp_type": "hrrp_column_complex",
+    "train_type": "hrrp_graph_only_hrrp_column_complex_16",
+    "cfm_input_dim": 128,
     "use_cfm": true,
-    "cfm_type": "resnet18",
-    "column_group_size": 100,
+    "cfm_type": "hrrp_graph",
+    "column_group_size": 16,
     "gpu_id": "0",
-    "runs": 1
+    "runs": 2
   }
   

@@ -65,7 +65,7 @@ class Dataset(torch.utils.data.Dataset):
         return angle
 
     def _build_hrrp_index(self, path):
-        """建立HRRP数据的索引，格式为：{class_id: {angle: file_path}}"""
+        """建立HRRP数据的索引，格式为：{class_id: {angle: [file_path1, file_path2, ...]}}"""
         mode = 'train' if self.is_train else 'test'
         hrrp_files = glob.glob(os.path.join(
             project_root, path,
@@ -73,7 +73,7 @@ class Dataset(torch.utils.data.Dataset):
         ))
         
         # 使用defaultdict避免重复检查字典键是否存在
-        index = defaultdict(dict)
+        index = defaultdict(lambda: defaultdict(list))
         
         print(f"Building HRRP index for {mode} set...")
         for hrrp_file in tqdm.tqdm(hrrp_files):
@@ -86,12 +86,12 @@ class Dataset(torch.utils.data.Dataset):
             
             class_id = info['class_id']
             angle = self._normalize_angle(info['azimuth_angle'])
-            index[class_id][angle] = hrrp_file
+            index[class_id][angle].append(hrrp_file)
             
         return index
 
     def _find_closest_hrrp(self, target_label, target_angle):
-        """使用索引快速找到最接近目标角度+30度的HRRP数据"""
+        """使用索引快速找到最接近目标角度+30度的所有HRRP数据"""
         if target_label not in self.hrrp_index:
             return None
             
@@ -117,26 +117,38 @@ class Dataset(torch.utils.data.Dataset):
 
         for image_path, label_path in tqdm.tqdm(zip(sar_image_list, sar_label_list), desc=f'load {mode} data set'):
             # 加载SAR数据
-            self.images.append(np.load(image_path))
+            sar_image = np.load(image_path)
 
             # 加载标签信息
             with open(label_path, mode='r', encoding='utf-8') as f:
                 _label = json.load(f)
 
-            self.labels.append(_label['class_id'])
-            self.serial_number.append(_label['serial_number'])
-            
             angle = self._normalize_angle(_label['azimuth_angle'])
-            self.angles.append(angle)
             
             # 如果使用CFM，找到对应的HRRP数据
             if self.use_cfm:
-                hrrp_file = self._find_closest_hrrp(_label['class_id'], angle)
-                if hrrp_file is not None:
-                    # 直接加载HRRP数据
-                    hrrp_data = np.load(hrrp_file)
-                    self.hrrp_data.append(torch.FloatTensor(hrrp_data))
+                hrrp_files = self._find_closest_hrrp(_label['class_id'], angle)
+                if hrrp_files is not None:
+                    # 为每个HRRP文件创建一个数据对
+                    for hrrp_file in hrrp_files:
+                        # 加载HRRP数据
+                        hrrp_data = np.load(hrrp_file)
+                        self.hrrp_data.append(torch.FloatTensor(hrrp_data))
+                        # 复制SAR图像和标签
+                        self.images.append(sar_image)
+                        self.labels.append(_label['class_id'])
+                        self.serial_number.append(_label['serial_number'])
+                        self.angles.append(angle)
                 else:
                     # 如果找不到对应的HRRP数据，使用零向量
-                    pdb.set_trace()
+                    self.images.append(sar_image)
+                    self.labels.append(_label['class_id'])
+                    self.serial_number.append(_label['serial_number'])
+                    self.angles.append(angle)
                     self.hrrp_data.append(torch.zeros(self.column_group_size))
+            else:
+                # 不使用CFM时，直接添加SAR数据
+                self.images.append(sar_image)
+                self.labels.append(_label['class_id'])
+                self.serial_number.append(_label['serial_number'])
+                self.angles.append(angle)

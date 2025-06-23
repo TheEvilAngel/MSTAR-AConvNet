@@ -172,6 +172,10 @@ $ python3 generate_dataset.py --is_train=False --use_phase=True --chip_size=100 
 $ python3 generate_dataset.py --is_train=False --use_phase=False --chip_size=100 --patch_size=100 --dataset=soc --type=hrrp_column --column_group_size=10
 $ python3 generate_dataset.py --is_train=True --use_phase=True --chip_size=128 --patch_size=128 --dataset=soc --type=hrrp_row
 $ python3 generate_dataset.py --is_train=False --use_phase=True --chip_size=128 --patch_size=128 --dataset=soc --type=hrrp_row
+
+$ python3 generate_dataset.py --is_train=True --use_phase=True --chip_size=128 --patch_size=128 --dataset=soc --type=hrrp_column_complex --column_group_size=16
+$ python3 generate_dataset.py --is_train=False --use_phase=True --chip_size=128 --patch_size=128 --dataset=soc --type=hrrp_column_complex --column_group_size=16
+
 $ cd ..
 $ python3 train.py --config_name=config/AConvNet-SOC-sar.json
 $ python3 train.py --config_name=config/AConvNet-SOC-sar-cfm.json
